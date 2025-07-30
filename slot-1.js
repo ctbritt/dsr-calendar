@@ -1,12 +1,19 @@
 // Prompt user to input the date and time, then set and display the current in-world date and time using the custom calendar
-const components = await game.time.calendar.timeToComponents(
-  game.time.worldTime
-);
-console.warn("Slot 1 components", components, game.time.worldTime);
+const components = await promptAndSetCalendarDate();
 if (!components) {
   ui.notifications.warn("Calendar date was not set.");
   return;
 }
+
+console.warn("Slot 2 components", components);
+// await setCalendarDate(
+//   components.year,
+//   components.month,
+//   components.day,
+//   components.hour,
+//   components.minute,
+//   components.second
+// );
 
 // is intercalary?
 
@@ -30,11 +37,10 @@ if (typeof CONFIG.time.worldCalendarClass.getSeason === "function") {
     ) ?? "";
 }
 
-// get moon data directly from the components
-const moonDayOfYear = game.time.calendar.getDayOfYear(components);
-const moon = game.time.calendar.moons.map((moon) =>
-  game.time.calendar.calculateMoonPhase(moon, components.year, moonDayOfYear)
-);
+// get moon data - need to convert components to worldTime first, then get moon data
+const worldTime = game.time.calendar.componentsToTime(components) * 1000;
+const currentComponents = game.time.calendar.timeToComponents(worldTime);
+const moon = currentComponents.moons;
 
 // Display moon information
 let moonInfo = "";
