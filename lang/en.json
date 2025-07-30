@@ -1,0 +1,22 @@
+{
+    "DSR-CALENDAR": {
+        "PromptYear": "Enter year:",
+        "PromptMonth": "Enter month number:",
+        "PromptDay": "Enter day ({month}, 1-{days}):",
+        "PromptHour": "Enter hour (0-23):",
+        "PromptMinute": "Enter minute (0-59):",
+        "PromptSecond": "Enter second (0-59):",
+        "InvalidMonth": "Invalid month selection.",
+        "InvalidDay": "Invalid day.",
+        "InvalidHour": "Invalid hour.",
+        "InvalidMinute": "Invalid minute.",
+        "InvalidSecond": "Invalid second.",
+        "KingsAge": "Kings Age",
+        "YearOf": "Year of",
+        "Season": "Season",
+        "CalendarSet": "World time set to: Year {year}, Month {month}, Day {day}, Hour {hour}, Minute {minute}, Second {second}",
+        "UsingCore": "Using core calendar.",
+        "RegisteredDS": "Dark Sun calendar registered with Foundry.",
+        "CalendarPromptTitle": "Set Calendar Date"
+    }
+}
