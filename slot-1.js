@@ -2,19 +2,11 @@
 const components = await game.time.calendar.timeToComponents(
   game.time.worldTime
 );
-console.warn("Slot 1 components", components);
+console.warn("Slot 1 components", components, game.time.worldTime);
 if (!components) {
   ui.notifications.warn("Calendar date was not set.");
   return;
 }
-await setCalendarDate(
-  components.year,
-  components.month,
-  components.day,
-  components.hour,
-  components.minute,
-  components.second
-);
 
 // is intercalary?
 

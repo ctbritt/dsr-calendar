@@ -92,7 +92,7 @@ Hooks.once("init", async () => {
 
       // 2. Find year and day of year
       const daysPerYear = this.daysPerYear;
-      const year = Math.floor(totalDays / daysPerYear) + this.yearZero - 1;
+      const year = Math.floor(totalDays / daysPerYear) + this.yearZero;
       const dayOfYear = totalDays % daysPerYear;
 
       // 3. Find month and day, handle intercalary months
@@ -288,16 +288,20 @@ Hooks.once("ready", async () => {
     const calendarConfig = CONFIG.time.worldCalendarConfig;
     const dsrCalendar = new CalendarClass(calendarConfig, {});
     const now = game.time.calendar.timeToComponents(game.time.worldTime);
+
+    // Convert 1-based month to 0-based for internal use
+    const monthIndex = month - 1;
+
     const components = {
       year: year,
-      month: month,
+      month: monthIndex,
       day: day,
       hour: hour !== undefined && hour !== null ? hour : now.hour,
       minute: minute !== undefined && minute !== null ? minute : now.minute,
       second: second !== undefined && second !== null ? second : now.second,
     };
     dsrCalendar.year = year;
-    dsrCalendar.month = month;
+    dsrCalendar.month = monthIndex;
     dsrCalendar.day = day;
     dsrCalendar.hour = hour;
     dsrCalendar.minute = minute;
@@ -308,7 +312,7 @@ Hooks.once("ready", async () => {
       game.i18n
         .localize("DSR-CALENDAR.CalendarSet")
         .replace("{year}", year)
-        .replace("{month}", month + 1) // Display 1-based month to user
+        .replace("{month}", month) // Display 1-based month to user
         .replace("{day}", day)
         .replace("{hour}", hour)
         .replace("{minute}", minute)

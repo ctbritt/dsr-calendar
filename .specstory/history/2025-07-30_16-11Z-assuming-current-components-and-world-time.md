@@ -3085,6 +3085,294 @@ Read file: scripts/module.js
 
 ---
 
+I found the issue! The problem is on line 312 where it says `// Display 1-based month to user` but it's actually displaying the 0-based month. Let me fix this:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -309,5 +309,5 @@
+          .localize("DSR-CALENDAR.CalendarSet")
+          .replace("{year}", year)
+-         .replace("{month}", month) // Display 1-based month to user
++         .replace("{month}", month + 1) // Display 1-based month to user
+          .replace("{day}", day)
+          .replace("{hour}", hour)
+```
+
+</details>
+
+---
+
+Perfect! Now the `setCalendarDate` function will correctly display the month as 1-based for the user. 
+
+## **What was happening:**
+
+- **Input**: `promptAndSetCalendarDate()` with `1,1,1,1,1,1`
+- **Month parameter**: `1` (1-based, meaning "Scorch" - the first month)
+- **Internal storage**: Month is stored as `0` (0-based array index)
+- **Display**: Was showing `month` (0) instead of `month + 1` (1)
+
+## **Now fixed:**
+
+- **Input**: `1,1,1,1,1,1` 
+- **Month parameter**: `1` (1-based)
+- **Internal storage**: Month is stored as `0` (0-based)
+- **Display**: Now shows `month + 1` (1) correctly
+
+So when you enter `1,1,1,1,1,1`, it should now display:
+```
+World time set to: Year 1, Month 1, Day 1, Hour 1, Minute 1, Second 1
+```
+
+Instead of the incorrect:
+```
+World time set to: Year 1, Month 0, Day 1, Hour 1, Minute 1, Second 1
+```
+
+---
+
+_**User**_
+
+why is year 1, day 1 resulting in totalCalendarDay -374 in @slot-1.js 
+
+---
+
+_**Assistant**_
+
+The issue is that `getTotalCalendarDay` is being called with the wrong parameters. Looking at the code, I can see the problem:
+
+In `slot-1.js`, you're calling:
+```javascript
+const totalCalendarDay = game.time.calendar.getTotalCalendarDay(
+  components.year,
+  dayOfYear
+);
+```
+
+But `dayOfYear` is the result of `getDayOfYear(components)`, which returns a 1-based day of year. However, looking at the `getTotalCalendarDay` function, it expects the day of year to be 1-based, but there might be an issue with how `getDayOfYear` is calculating the day.
+
+Let me check what `getDayOfYear` is returning. The issue is likely that for Year 1, Day 1, `getDayOfYear` is returning 0 instead of 1, which would cause:
+
+```javascript
+getTotalCalendarDay(1, 0) = (1-1) * 375 + 0 = 0 * 375 + 0 = 0
+```
+
+But you're seeing -374, which suggests there might be an issue with the `getDayOfYear` function itself. Let me check the `getDayOfYear` function:
+
+
+---
+
+Read file: scripts/module.js
+
+---
+
+I found the issue! In the `getDayOfYear` function, for regular months (not intercalary), it's doing:
+
+```javascript
+return m.dayOffset + components.day;
+```
+
+For Year 1, Day 1, Month 0 (Scorch):
+- `m.dayOffset` is 0 (first month starts at day 0)
+- `components.day` is 1
+- So `getDayOfYear` returns `0 + 1 = 1`
+
+But then `getTotalCalendarDay(1, 1)` should return `(1-1) * 375 + 1 = 0 + 1 = 1`, not -374.
+
+The issue might be that `components.day` is not 1. Let me add some debugging to see what's happening. Can you check what the console shows for "Slot 1 components" when you run it? 
+
+The -374 suggests that `dayOfYear` is actually 0, which would mean `components.day` is 0, not 1. This could happen if the `timeToComponents` function is returning day as 0 instead of 1.
+
+Can you run the macro and tell me what the console shows for "Slot 1 components"?
+
+---
+
+_**User**_
+
+{
+    "year": 0,
+    "month": 0,
+    "day": 1,
+    "hour": 1,
+    "minute": 1,
+    "second": 1,
+    "intercalary": null,
+    "intercalaryDay": null,
+    "moons": [
+        {
+            "name": "Ral",
+            "phase": {
+                "name": "New Moon",
+                "length": 2,
+                "singleDay": false,
+                "icon": "new"
+            },
+            "phaseIndex": 0,
+            "phaseDay": -11,
+            "cycleDay": -11,
+            "cycleLength": 33,
+            "color": "#8de715"
+        },
+        {
+            "name": "Guthay",
+            "phase": {
+                "name": "New Moon",
+                "length": 9,
+                "singleDay": false,
+                "icon": "new"
+            },
+            "phaseIndex": 0,
+            "phaseDay": 1,
+            "cycleDay": 1,
+            "cycleLength": 125,
+            "color": "#e7dd15"
+        }
+    ]
+}
+
+---
+
+_**Assistant**_
+
+I found the issue! The problem is that `components.year` is 0, not 1. This is happening because of the year calculation in the `timeToComponents` method. Let me check that:
+
+
+---
+
+Read file: scripts/module.js
+
+---
+
+I found the issue! On line 95, the year calculation is:
+
+```javascript
+const year = Math.floor(totalDays / daysPerYear) + this.yearZero - 1;
+```
+
+The problem is the `- 1` at the end. This is causing Year 1 to be calculated as Year 0. Let me fix this:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -93,5 +93,5 @@
+        // 2. Find year and day of year
+        const daysPerYear = this.daysPerYear;
+-       const year = Math.floor(totalDays / daysPerYear) + this.yearZero - 1;
++       const year = Math.floor(totalDays / daysPerYear) + this.yearZero;
+        const dayOfYear = totalDays % daysPerYear;
+  
+```
+
+</details>
+
+---
+
+Perfect! Now the year calculation should be correct. The issue was that the `- 1` was causing Year 1 to be calculated as Year 0, which then caused:
+
+- `getTotalCalendarDay(0, 1)` = `(0-1) * 375 + 1` = `-1 * 375 + 1` = `-375 + 1` = `-374`
+
+Now with the fix:
+- `getTotalCalendarDay(1, 1)` = `(1-1) * 375 + 1` = `0 * 375 + 1` = `1`
+
+This should resolve the issue and give you the correct total calendar day of 1 for Year 1, Day 1!
+
+---
+
+_**User**_
+
+hm. await setCalendarDate(1,1,1,12,0,0)
+is returning 
+
+World time set to: Year 1, Month 2, Day 1, Hour 12, Minute 0, Second 0
+
+---
+
+_**Assistant**_
+
+The issue is that `setCalendarDate` is being called with 1-based month (1), but internally it's being treated as 0-based, so month 1 becomes month 2 in the display. Let me check the `setCalendarDate` function:
+
+
+---
+
+Read file: scripts/module.js
+
+---
+
+I found the issue! The problem is that `setCalendarDate` is expecting the month parameter to be 0-based (like the internal calendar system), but you're calling it with 1-based month (1). 
+
+The function should convert the 1-based month input to 0-based for internal use. Let me fix this:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 5, lines removed: 1
+
+```diff
+@@ -289,7 +289,11 @@
+      const dsrCalendar = new CalendarClass(calendarConfig, {});
+      const now = game.time.calendar.timeToComponents(game.time.worldTime);
++     
++     // Convert 1-based month to 0-based for internal use
++     const monthIndex = month - 1;
++     
+      const components = {
+        year: year,
+-       month: month,
++       month: monthIndex,
+        day: day,
+        hour: hour !== undefined && hour !== null ? hour : now.hour,
+```
+
+</details>
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -302,5 +302,5 @@
+      };
+      dsrCalendar.year = year;
+-     dsrCalendar.month = month;
++     dsrCalendar.month = monthIndex;
+      dsrCalendar.day = day;
+      dsrCalendar.hour = hour;
+```
+
+</details>
+
+---
+
+
+
+---
+
 
 
 ---
