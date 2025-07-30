@@ -92,7 +92,7 @@ Hooks.once("init", async () => {
 
       // 2. Find year and day of year
       const daysPerYear = this.daysPerYear;
-      const year = Math.floor(totalDays / daysPerYear) + this.yearZero;
+      const year = Math.floor(totalDays / daysPerYear) + this.yearZero - 1;
       const dayOfYear = totalDays % daysPerYear;
 
       // 3. Find month and day, handle intercalary months
@@ -238,6 +238,7 @@ Hooks.once("init", async () => {
       const yearNames = calendarConfig.years.name.values;
       if (!Array.isArray(yearNames) || yearNames.length === 0) return null;
       const idx = year % yearNames.length;
+      console.log("idx", idx);
       return yearNames[idx] || null;
     }
 
@@ -266,7 +267,7 @@ Hooks.once("init", async () => {
      * @returns {number} Total calendar day since year 1
      */
     getTotalCalendarDay(year, dayOfYear) {
-      return (year - 1) * this.daysPerYear + dayOfYear;
+      return year * this.daysPerYear + dayOfYear;
     }
   }
   CONFIG.time.worldCalendarClass = DarkSunCalendar;
@@ -290,7 +291,7 @@ Hooks.once("ready", async () => {
     const now = game.time.calendar.timeToComponents(game.time.worldTime);
 
     // Convert 1-based month to 0-based for internal use
-    const monthIndex = month - 1;
+    const monthIndex = month;
 
     const components = {
       year: year,
@@ -327,12 +328,14 @@ Hooks.once("ready", async () => {
     const calendarConfig = CONFIG.time.worldCalendarConfig;
     const calendar = new CalendarClass(calendarConfig, {});
     const months = calendarConfig.months.values;
-    let current = { year: 1, month: 1, day: 1, hour: 0, minute: 0, second: 0 };
-    if (game.time && typeof game.time.worldTime === "number") {
-      try {
-        current = game.time.calendar.timeToComponents(game.time.worldTime);
-      } catch (e) {}
-    }
+    let current = await game.time.calendar.timeToComponents(
+      game.time.worldTime
+    );
+    // if (game.time && typeof game.time.worldTime === "number") {
+    //   try {
+    //     current = game.time.calendar.timeToComponents(game.time.worldTime);
+    //   } catch (e) {}
+    // }
     let monthOptions = months
       .map((m, i) =>
         m.intercalary
@@ -342,16 +345,27 @@ Hooks.once("ready", async () => {
       .join("\n");
     let yearInput = prompt(
       game.i18n.localize("DSR-CALENDAR.PromptYear"),
-      current.year
+      current.year + 1
     );
+
+    // Check if user cancelled the prompt
+    if (yearInput === null) {
+      return null;
+    }
     let monthInput = prompt(
       game.i18n.localize("DSR-CALENDAR.PromptMonth"),
       current.month + 1 // Display 1-based month to user
     );
-    const monthIndex = parseInt(monthInput, 10) - 1;
+
+    // Check if user cancelled the prompt
+    if (monthInput === null) {
+      return null;
+    }
+
+    const monthIndex = parseInt(monthInput, 10);
     if (isNaN(monthIndex) || monthIndex < 0 || monthIndex >= months.length) {
       ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidMonth"));
-      return;
+      return null;
     }
     const selectedMonth = months[monthIndex];
     let dayPrompt = game.i18n
@@ -359,32 +373,56 @@ Hooks.once("ready", async () => {
       .replace("{month}", selectedMonth.name)
       .replace("{days}", selectedMonth.days);
     let dayInput = prompt(dayPrompt, current.day);
+
+    // Check if user cancelled the prompt
+    if (dayInput === null) {
+      return null;
+    }
+
     const day = parseInt(dayInput, 10);
     if (isNaN(day) || day < 1 || day > selectedMonth.days) {
       ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidDay"));
-      return;
+      return null;
     }
     let hourInput = prompt("Enter hour (0-23):", current.hour);
+
+    // Check if user cancelled the prompt
+    if (hourInput === null) {
+      return null;
+    }
+
     let minuteInput = prompt("Enter minute (0-59):", current.minute);
+
+    // Check if user cancelled the prompt
+    if (minuteInput === null) {
+      return null;
+    }
+
     let secondInput = prompt("Enter second (0-59):", current.second);
+
+    // Check if user cancelled the prompt
+    if (secondInput === null) {
+      return null;
+    }
+
     const hour = parseInt(hourInput, 10);
     const minute = parseInt(minuteInput, 10);
     const second = parseInt(secondInput, 10);
     if (isNaN(hour) || hour < 0 || hour > 23) {
       ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidHour"));
-      return;
+      return null;
     }
     if (isNaN(minute) || minute < 0 || minute > 59) {
       ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidMinute"));
-      return;
+      return null;
     }
     if (isNaN(second) || second < 0 || second > 59) {
       ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidSecond"));
-      return;
+      return null;
     }
     return {
       year: parseInt(yearInput, 10),
-      month: monthIndex, // Keep 0-based month
+      month: monthIndex - 1, // Keep 0-based month
       day,
       hour,
       minute,
@@ -398,7 +436,7 @@ Hooks.once("ready", async () => {
     if (!components) return;
     return await window.setCalendarDate(
       components.year,
-      components.month,
+      components.month + 1, // Convert 0-based month back to 1-based for setCalendarDate
       components.day,
       components.hour,
       components.minute,

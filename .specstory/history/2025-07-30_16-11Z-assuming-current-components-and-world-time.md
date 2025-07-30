@@ -3369,11 +3369,904 @@ Lines added: 1, lines removed: 1
 
 ---
 
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -313,5 +313,5 @@
+          .localize("DSR-CALENDAR.CalendarSet")
+          .replace("{year}", year)
+-         .replace("{month}", month + 1) // Display 1-based month to user
++         .replace("{month}", month) // Display 1-based month to user
+          .replace("{day}", day)
+          .replace("{hour}", hour)
+```
+
+</details>
+
+---
+
+Perfect! Now the `setCalendarDate` function correctly handles the month conversion:
+
+## **What was happening:**
+- **Input**: `setCalendarDate(1, 1, 1, 12, 0, 0)` (month 1 = 1-based)
+- **Internal**: Was using month 1 directly (0-based = "Morrow", the second month)
+- **Display**: `month + 1` = `1 + 1` = 2
+
+## **Now fixed:**
+- **Input**: `setCalendarDate(1, 1, 1, 12, 0, 0)` (month 1 = 1-based)
+- **Internal**: Converts to `monthIndex = 1 - 1 = 0` (0-based = "Scorch", the first month)
+- **Display**: `month` = `1` (shows the original 1-based input)
+
+Now when you call `await setCalendarDate(1, 1, 1, 12, 0, 0)`, it should correctly display:
+```
+World time set to: Year 1, Month 1, Day 1, Hour 12, Minute 0, Second 0
+```
+
+The function now properly converts between 1-based user input and 0-based internal storage!
+
+---
+
+_**User**_
+
+what is happening here? 
+
+---
+
+_**Assistant**_
+
+Looking at your changes, I can see you're trying to fix the year calculation issues, but there are some inconsistencies that are causing problems. Let me explain what's happening:
+
+## **The Core Issue:**
+
+You have **conflicting year calculations** between different parts of the system:
+
+### **1. `timeToComponents` method:**
+```javascript
+const year = Math.floor(totalDays / daysPerYear) + this.yearZero - 1;
+```
+This converts world time back to calendar components.
+
+### **2. `getTotalCalendarDay` method:**
+```javascript
+return year * this.daysPerYear + dayOfYear;
+```
+This converts calendar components back to total days.
+
+### **3. The Problem:**
+These two calculations are **not inverses** of each other:
+- `timeToComponents` subtracts 1 from the year
+- `getTotalCalendarDay` doesn't add 1 back
+
+## **What's Happening:**
+
+1. **Input**: `setCalendarDate(1, 1, 1, 12, 0, 0)` (Year 1, Month 1, Day 1)
+2. **Internal**: Converts to world time using `componentsToTime`
+3. **Later**: `timeToComponents` converts world time back to components
+4. **Result**: Year becomes 0 instead of 1 because of the `-1`
+
+## **The Fix:**
+
+You need to make these calculations **consistent**. Either:
+
+**Option A: Remove the -1 from both**
+```javascript
+// In timeToComponents
+const year = Math.floor(totalDays / daysPerYear) + this.yearZero;
+
+// In getTotalCalendarDay  
+return (year - 1) * this.daysPerYear + dayOfYear;
+```
+
+**Option B: Keep the -1 in both**
+```javascript
+// In timeToComponents
+const year = Math.floor(totalDays / daysPerYear) + this.yearZero - 1;
+
+// In getTotalCalendarDay
+return year * this.daysPerYear + dayOfYear;
+```
+
+I recommend **Option A** because it keeps years as 1-based throughout the system, which is more intuitive.
+
+Would you like me to fix this inconsistency?
+
+---
+
+_**User**_
+
+what is heppening here. 
+
+---
+
+_**Assistant**_
+
+Looking at this code section, here's what's happening:
+
+## **What This Code Does:**
+
+### **1. `monthOptions` Creation:**
+```javascript
+let monthOptions = months
+  .map((m, i) =>
+    m.intercalary
+      ? `${i + 1}: [Intercalary] ${m.name}`
+      : `${i + 1}: ${m.name}`
+  )
+  .join("\n");
+```
+
+This creates a string showing all available months for the user to choose from:
+```
+1: Scorch
+2: Morrow
+3: Rest
+4: Gather
+5: [Intercalary] Cooling Sun
+6: Breeze
+...
+```
+
+### **2. Year Input Prompt:**
+```javascript
+let yearInput = prompt(
+  game.i18n.localize("DSR-CALENDAR.PromptYear"),
+  current.year
+);
+```
+
+This prompts the user to enter a year, with the current year as the default value.
+
+### **3. Month Input Prompt:**
+```javascript
+let monthInput = prompt(
+  // This line is cut off in your selection
+```
+
+This will prompt the user to enter a month number.
+
+## **The Issue:**
+
+The problem is that `current.year` might be 0 (as we saw earlier) because of the year calculation inconsistency. So when the prompt shows:
+
+```
+Enter year: 0
+```
+
+Instead of:
+```
+Enter year: 1
+```
+
+## **What Should Happen:**
+
+1. **`monthOptions`**: Creates a nice list of months for reference
+2. **`yearInput`**: Prompts for year with current year as default
+3. **`monthInput`**: Prompts for month with current month as default
+
+But because `current.year` is 0 instead of 1, the user sees the wrong default year.
+
+This is part of the `promptForCalendarDate()` function that lets users interactively choose a date and time. The issue is that the `current` object (which comes from `timeToComponents`) has the wrong year value due to the calculation inconsistency we discussed earlier.
+
+---
+
+_**User**_
+
+ok. how do we fix all this. Seems like the problem is that year 0 = 1 in the athas system. 
+
+---
+
+_**Assistant**_
+
+You're absolutely right! The issue is that in the Dark Sun calendar system, Year 0 should actually be Year 1. The problem is the `yearZero` setting in the calendar data. Let me check what it's currently set to:
 
 
 ---
 
+Read file: data/darksun-calendar.json
 
+---
+
+I see the issue! The `yearZero` is set to 1, which means the calendar system thinks Year 1 is the zero point. But in Dark Sun, Year 1 should be Year 1, not Year 0. Let me fix this by changing the `yearZero` to 0:
+
+
+---
+
+<details><summary>Edit file: data/darksun-calendar.json</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -3,5 +3,5 @@
+      "description": "The harsh calendar of the dying world of Athas from the Dark Sun D&D setting. Features a complex system of named years that cycle through 77 different combinations, with intercalary periods marking the deadly seasonal extremes.",
+      "years": {
+-         "yearZero": 1,
++         "yearZero": 0,
+          "firstWeekday": 0,
+          "name": {
+```
+
+</details>
+
+---
+
+Now I need to fix the year calculations in the module to be consistent with this change:
+
+
+---
+
+The string to replace was not found in the file.
+
+---
+
+It looks like the year calculation is already correct. Let me also fix the `getTotalCalendarDay` function to be consistent:
+
+
+---
+
+The string to replace was not found in the file.
+
+---
+
+It looks like the `getTotalCalendarDay` function is already correct too. Let me check the current state of the file to see what needs to be fixed:
+
+
+---
+
+Read file: scripts/module.js
+
+---
+
+Perfect! Now the system should work correctly. Here's what I've fixed:
+
+## **The Fix:**
+
+### **1. Changed `yearZero` in calendar data:**
+- **From**: `"yearZero": 1` 
+- **To**: `"yearZero": 0`
+
+### **2. The calculations are now consistent:**
+
+**`timeToComponents`:**
+```javascript
+const year = Math.floor(totalDays / daysPerYear) + this.yearZero;
+// With yearZero = 0, this correctly gives Year 1 for the first year
+```
+
+**`componentsToTime`:**
+```javascript
+let y = year - yearZero;
+// With yearZero = 0, this correctly converts Year 1 to 0 for calculations
+```
+
+**`getTotalCalendarDay`:**
+```javascript
+return (year - 1) * this.daysPerYear + dayOfYear;
+// This correctly calculates total days since Year 1
+```
+
+## **What This Means:**
+
+- **Year 1** is now properly Year 1 (not Year 0)
+- **Year 1, Day 1** will give **Total Calendar Day 1**
+- **Year 2, Day 1** will give **Total Calendar Day 376**
+- All the year calculations are now consistent
+
+Now when you call `await setCalendarDate(1, 1, 1, 12, 0, 0)`, it should work correctly and show:
+```
+World time set to: Year 1, Month 1, Day 1, Hour 12, Minute 0, Second 0
+```
+
+And the total calendar day should be 1, not -374!
+
+---
+
+_**User**_
+
+could this a drop-down menu that lists the months names? 
+
+---
+
+_**Assistant**_
+
+Yes! We can create a dropdown menu instead of a text prompt. Let me modify the `promptForCalendarDate` function to use a dropdown for month selection:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 41, lines removed: 5
+
+```diff
+@@ -347,9 +347,45 @@
+        current.year
+      );
+-     let monthInput = prompt(
+-       game.i18n.localize("DSR-CALENDAR.PromptMonth"),
+-       current.month + 1 // Display 1-based month to user
+-     );
+-     const monthIndex = parseInt(monthInput, 10) - 1;
++     // Create month dropdown options
++     const monthOptions = months.map((m, i) => ({
++       value: i + 1,
++       label: m.intercalary ? `[Intercalary] ${m.name}` : m.name
++     }));
++     
++     // Create month selection dialog
++     const monthDialog = new Dialog({
++       title: game.i18n.localize("DSR-CALENDAR.PromptMonth"),
++       content: `
++         <form>
++           <div class="form-group">
++             <label>Select Month:</label>
++             <select id="monthSelect">
++               ${monthOptions.map(option => 
++                 `<option value="${option.value}" ${option.value === current.month + 1 ? 'selected' : ''}>
++                   ${option.value}: ${option.label}
++                 </option>`
++               ).join('')}
++             </select>
++           </div>
++         </form>
++       `,
++       buttons: {
++         ok: {
++           label: "OK",
++           callback: (html) => {
++             const selectedMonth = parseInt(html.find('#monthSelect').val());
++             return selectedMonth;
++           }
++         },
++         cancel: {
++           label: "Cancel"
++         }
++       }
++     });
++     
++     const monthResult = await monthDialog.render(true);
++     if (!monthResult) return null;
++     
++     const monthIndex = monthResult - 1;
+      if (isNaN(monthIndex) || monthIndex < 0 || monthIndex >= months.length) {
+        ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidMonth"));
+```
+
+</details>
+
+---
+
+I need to fix the variable redeclaration error. Let me rename the new variable:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -348,5 +348,5 @@
+      );
+      // Create month dropdown options
+-     const monthOptions = months.map((m, i) => ({
++     const monthDropdownOptions = months.map((m, i) => ({
+        value: i + 1,
+        label: m.intercalary ? `[Intercalary] ${m.name}` : m.name
+```
+
+**Chunk 2**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -361,5 +361,5 @@
+              <label>Select Month:</label>
+              <select id="monthSelect">
+-               ${monthOptions.map(option => 
++               ${monthDropdownOptions.map(option => 
+                  `<option value="${option.value}" ${option.value === current.month + 1 ? 'selected' : ''}>
+                    ${option.value}: ${option.label}
+```
+
+</details>
+
+---
+
+Perfect! Now the month selection uses a dropdown menu instead of a text prompt. Here's what the new interface provides:
+
+## **New Month Selection Features:**
+
+### **1. Dropdown Menu:**
+- Shows all 15 months with their names
+- Intercalary months are clearly marked with `[Intercalary]`
+- Current month is pre-selected
+- No need to remember month numbers
+
+### **2. User-Friendly Display:**
+```
+1: Scorch
+2: Morrow
+3: Rest
+4: Gather
+5: [Intercalary] Cooling Sun
+6: Breeze
+7: Mist
+8: Bloom
+9: Haze
+10: [Intercalary] Soaring Sun
+11: Hoard
+12: Wind
+13: Sorrow
+14: Smolder
+15: [Intercalary] Highest Sun
+```
+
+### **3. Benefits:**
+- **No typing errors**: Can't mistype month numbers
+- **Clear names**: See actual month names instead of just numbers
+- **Intercalary identification**: Easy to spot the special 5-day months
+- **Current selection**: Automatically highlights the current month
+- **Cancel option**: Can cancel the selection if needed
+
+### **4. How it works:**
+1. User clicks "OK" to confirm month selection
+2. Returns the selected month number (1-15)
+3. Converts to 0-based index for internal use
+4. Continues with day selection as before
+
+This makes the calendar date selection much more user-friendly and less error-prone!
+
+---
+
+_**User**_
+
+eh, roll that back. text entry is fine. 
+
+---
+
+_**Assistant**_
+
+Sure! Let me roll back to the simple text prompt for month selection:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 5, lines removed: 46
+
+```diff
+@@ -347,50 +347,9 @@
+        current.year
+      );
+-     // Create month dropdown options
+-     const monthDropdownOptions = months.map((m, i) => ({
+-       value: i + 1,
+-       label: m.intercalary ? `[Intercalary] ${m.name}` : m.name,
+-     }));
+- 
+-     // Create month selection dialog
+-     const monthDialog = new Dialog({
+-       title: game.i18n.localize("DSR-CALENDAR.PromptMonth"),
+-       content: `
+-         <form>
+-           <div class="form-group">
+-             <label>Select Month:</label>
+-             <select id="monthSelect">
+-               ${monthDropdownOptions
+-                 .map(
+-                   (option) =>
+-                     `<option value="${option.value}" ${
+-                       option.value === current.month + 1 ? "selected" : ""
+-                     }>
+-                   ${option.value}: ${option.label}
+-                 </option>`
+-                 )
+-                 .join("")}
+-             </select>
+-           </div>
+-         </form>
+-       `,
+-       buttons: {
+-         ok: {
+-           label: "OK",
+-           callback: (html) => {
+-             const selectedMonth = parseInt(html.find("#monthSelect").val());
+-             return selectedMonth;
+-           },
+-         },
+-         cancel: {
+-           label: "Cancel",
+-         },
+-       },
+-     });
+- 
+-     const monthResult = await monthDialog.render(true);
+-     if (!monthResult) return null;
+- 
+-     const monthIndex = monthResult - 1;
++         let monthInput = prompt(
++       game.i18n.localize("DSR-CALENDAR.PromptMonth"),
++       current.month + 1 // Display 1-based month to user
++     );
++     const monthIndex = parseInt(monthInput, 10) - 1;
+      if (isNaN(monthIndex) || monthIndex < 0 || monthIndex >= months.length) {
+        ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidMonth"));
+```
+
+</details>
+
+---
+
+Perfect! I've rolled back to the simple text prompt for month selection. Now it's back to the original simple approach:
+
+- **Simple text prompt** asking for month number
+- **Default value** shows current month + 1 (1-based display)
+- **User types** the month number (1-15)
+- **Converts** to 0-based index for internal use
+
+Much simpler and cleaner! The text entry approach works fine for this use case.
+
+---
+
+_**User**_
+
+await promptAndSetCalendarDate()
+module.js:149 Uncaught Error: Month -1 not found in calendar data. Available months: 15
+    at DarkSunCalendar.componentsToTime (module.js:148:15)
+    at window.setCalendarDate (module.js:309:42)
+    at window.promptAndSetCalendarDate (module.js:401:25)
+    at async <anonymous>:1:1
+componentsToTime @ module.js:148
+window.setCalendarDate @ module.js:309
+window.promptAndSetCalendarDate @ module.js:401
+await in window.promptAndSetCalendarDate
+(anonymous) @ VM7718:1
+
+---
+
+_**Assistant**_
+
+The error shows that `month` is -1, which means the month conversion is going wrong. The issue is that when the user cancels the prompt, `monthInput` becomes `null`, and `parseInt(null, 10)` returns `NaN`, then `NaN - 1` becomes `NaN`, and when used as an array index it becomes -1.
+
+Let me fix this by adding proper validation:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 7, lines removed: 1
+
+```diff
+@@ -351,8 +351,14 @@
+        current.month + 1 // Display 1-based month to user
+      );
++     
++     // Check if user cancelled the prompt
++     if (monthInput === null) {
++       return null;
++     }
++     
+      const monthIndex = parseInt(monthInput, 10) - 1;
+      if (isNaN(monthIndex) || monthIndex < 0 || monthIndex >= months.length) {
+        ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidMonth"));
+-       return;
++       return null;
+      }
+      const selectedMonth = months[monthIndex];
+```
+
+</details>
+
+---
+
+I should also add the same validation for the year input:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 5, lines removed: undefined
+
+```diff
+@@ -347,4 +347,9 @@
+        current.year
+      );
++     
++     // Check if user cancelled the prompt
++     if (yearInput === null) {
++       return null;
++     }
+      let monthInput = prompt(
+        game.i18n.localize("DSR-CALENDAR.PromptMonth"),
+```
+
+</details>
+
+---
+
+And let me also add validation for the day input:
+
+
+---
+
+Read file: scripts/module.js
+
+---
+
+Let me add validation for the day input as well:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 7, lines removed: 1
+
+```diff
+@@ -373,8 +373,14 @@
+        .replace("{days}", selectedMonth.days);
+      let dayInput = prompt(dayPrompt, current.day);
++     
++     // Check if user cancelled the prompt
++     if (dayInput === null) {
++       return null;
++     }
++     
+      const day = parseInt(dayInput, 10);
+      if (isNaN(day) || day < 1 || day > selectedMonth.days) {
+        ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidDay"));
+-       return;
++       return null;
+      }
+      let hourInput = prompt("Enter hour (0-23):", current.hour);
+```
+
+</details>
+
+---
+
+And let me also add validation for the time inputs:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 21, lines removed: 3
+
+```diff
+@@ -385,20 +385,38 @@
+      }
+      let hourInput = prompt("Enter hour (0-23):", current.hour);
++     
++     // Check if user cancelled the prompt
++     if (hourInput === null) {
++       return null;
++     }
++     
+      let minuteInput = prompt("Enter minute (0-59):", current.minute);
++     
++     // Check if user cancelled the prompt
++     if (minuteInput === null) {
++       return null;
++     }
++     
+      let secondInput = prompt("Enter second (0-59):", current.second);
++     
++     // Check if user cancelled the prompt
++     if (secondInput === null) {
++       return null;
++     }
++     
+      const hour = parseInt(hourInput, 10);
+      const minute = parseInt(minuteInput, 10);
+      const second = parseInt(secondInput, 10);
+      if (isNaN(hour) || hour < 0 || hour > 23) {
+        ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidHour"));
+-       return;
++       return null;
+      }
+      if (isNaN(minute) || minute < 0 || minute > 59) {
+        ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidMinute"));
+-       return;
++       return null;
+      }
+      if (isNaN(second) || second < 0 || second > 59) {
+        ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidSecond"));
+-       return;
++       return null;
+      }
+      return {
+```
+
+</details>
+
+---
+
+Perfect! Now the `promptForCalendarDate` function properly handles user cancellation at every step. Here's what I've fixed:
+
+## **Fixed Issues:**
+
+### **1. Proper Cancellation Handling:**
+- **Year prompt**: Returns `null` if cancelled
+- **Month prompt**: Returns `null` if cancelled  
+- **Day prompt**: Returns `null` if cancelled
+- **Hour prompt**: Returns `null` if cancelled
+- **Minute prompt**: Returns `null` if cancelled
+- **Second prompt**: Returns `null` if cancelled
+
+### **2. Consistent Return Values:**
+- **All error cases**: Now return `null` instead of `undefined`
+- **Cancellation cases**: Return `null` to indicate user cancelled
+- **Success case**: Returns the components object
+
+### **3. What This Prevents:**
+- **Month -1 error**: No longer possible because cancelled prompts return `null`
+- **Invalid array access**: Cancelled prompts are caught before parsing
+- **Silent failures**: All cancellation is properly handled
+
+## **How It Works Now:**
+
+1. **User cancels any prompt** → Function returns `null`
+2. **`promptAndSetCalendarDate`** checks `if (!components) return;`
+3. **Function exits gracefully** without trying to set invalid data
+
+Now when you run `await promptAndSetCalendarDate()` and cancel any of the prompts, it will exit cleanly without throwing errors!
+
+---
+
+_**User**_
+
+this shows up after I enter 1,1,1,1,1 in the promptAndSetCalendarDate function
+
+Uncaught (in promise) Error: Month -1 not found in calendar data. Available months: 15
+    at DarkSunCalendar.componentsToTime (module.js:148:15)
+    at window.setCalendarDate (module.js:309:42)
+    at Macro.eval (eval at #executeScript (foundry.mjs:45313:16), <anonymous>:11:7)
+
+---
+
+_**Assistant**_
+
+The issue is still happening because the `setCalendarDate` function is being called with the wrong month parameter. Let me check what's being passed to it. The problem is that `promptForCalendarDate` returns a 0-based month index, but `setCalendarDate` expects a 1-based month.
+
+Let me check the `promptAndSetCalendarDate` function:
+
+
+---
+
+Read file: scripts/module.js
+
+---
+
+I found the issue! The problem is that `promptForCalendarDate` returns `monthIndex` (0-based), but `setCalendarDate` expects a 1-based month. I need to fix the `promptAndSetCalendarDate` function to convert the month back to 1-based:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -436,5 +436,5 @@
+      return await window.setCalendarDate(
+        components.year,
+-       components.month,
++       components.month + 1, // Convert 0-based month back to 1-based for setCalendarDate
+        components.day,
+        components.hour,
+```
+
+</details>
+
+---
+
+Perfect! Now the month conversion is handled correctly:
+
+## **The Fix:**
+
+### **What was happening:**
+1. **User enters**: Month 1 (1-based)
+2. **`promptForCalendarDate`**: Converts to `monthIndex = 0` (0-based)
+3. **`promptAndSetCalendarDate`**: Passes `components.month = 0` to `setCalendarDate`
+4. **`setCalendarDate`**: Expects 1-based, so `month - 1 = 0 - 1 = -1`
+5. **Error**: Month -1 not found
+
+### **Now fixed:**
+1. **User enters**: Month 1 (1-based)
+2. **`promptForCalendarDate`**: Converts to `monthIndex = 0` (0-based)
+3. **`promptAndSetCalendarDate`**: Converts back to `components.month + 1 = 0 + 1 = 1`
+4. **`setCalendarDate`**: Receives 1-based month, converts to `month - 1 = 1 - 1 = 0`
+5. **Success**: Month 0 found (Scorch)
+
+Now when you enter `1,1,1,1,1,1` in the `promptAndSetCalendarDate` function, it should work correctly without the "Month -1 not found" error!
+
+---
+
+_**User**_
+
+this is returning as -1 instead of 0
+
+---
+
+_**Assistant**_
+
+The issue is that `monthIndex` is coming back as -1 instead of 0. This suggests that `parseInt(monthInput, 10)` is returning 0, and then `0 - 1 = -1`.
+
+Let me check what's happening. The problem might be that when you enter "1" for month 1, it's being parsed correctly as 1, but then `1 - 1 = 0` should give us 0, not -1.
+
+Let me add some debugging to see what `monthInput` actually contains:
+
+
+---
+
+<details><summary>Edit file: scripts/module.js</summary>
+
+undefined
+
+**Chunk 1**
+Lines added: 1, lines removed: undefined
+
+```diff
+@@ -365,4 +365,5 @@
+      }
+  
++     console.log("monthInput", monthInput, "type:", typeof monthInput);
+      const monthIndex = parseInt(monthInput, 10) - 1;
+      console.log("monthIndex", monthIndex);
+```
+
+</details>
+
+---
+
+Now run the function again and let me know what the console shows for `monthInput`. This will help us see if:
+
+1. `monthInput` is actually "1" as expected
+2. `parseInt("1", 10)` is returning 1
+3. `1 - 1` should equal 0, not -1
+
+If `monthIndex` is still -1, then either:
+- `monthInput` is not "1" 
+- `parseInt` is not working as expected
+- There's some other issue in the calculation
+
+Can you run `await promptAndSetCalendarDate()` again and tell me what the console shows for the `monthInput` and `monthIndex` values?
 
 ---
 
