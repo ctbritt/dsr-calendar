@@ -1,10 +1,11 @@
 // Prompt user to input the date and time, then set and display the current in-world date and time using the custom calendar
 const components = await promptForCalendarDate();
-console.log("[Macro] components returned:", components);
 if (!components) {
   ui.notifications.warn("Calendar date was not set.");
   return;
 }
+
+console.warn("Slot 2 components", components);
 await setCalendarDate(
   components.year,
   components.month,
@@ -18,13 +19,12 @@ await setCalendarDate(
 
 const months = game.time.calendar.months;
 let intercalary = months[components.month].intercalary; // Already 0-based
-console.log(months[components.month]);
 const days = game.time.calendar.days;
 const monthName = game.i18n.localize(
   months[components.month]?.name ?? `Month ${components.month + 1}`
 );
 const dayName = game.i18n.localize(
-  days[(components.day - 1) % days.length]?.name ?? `Day ${components.day}`
+  days[(components.day - 1) % days.length]?.name ?? `Day ${components.day}` // Convert 1-based day to 0-based array index
 );
 
 // Optionally, get season for both calendars
@@ -41,7 +41,6 @@ if (typeof CONFIG.time.worldCalendarClass.getSeason === "function") {
 const worldTime = game.time.calendar.componentsToTime(components) * 1000;
 const currentComponents = game.time.calendar.timeToComponents(worldTime);
 const moon = currentComponents.moons;
-console.log("moon", moon);
 
 // Display moon information
 let moonInfo = "";
@@ -71,6 +70,12 @@ const yearName = CONFIG.time.worldCalendarClass.getYearName(
 
 // Calculate day of the year
 const dayOfYear = game.time.calendar.getDayOfYear(components);
+
+// Calculate total calendar day
+const totalCalendarDay = game.time.calendar.getTotalCalendarDay(
+  components.year,
+  dayOfYear
+);
 
 // Time formatting
 const use24Hour = game.settings.get("dsr-calendar", "use24HourTime");
@@ -104,7 +109,8 @@ const message = `
   ${dateLine}<br>
   <i>${season}</i><br>
   <b>${timeString}</b><br>
-  <i>Day ${dayOfYear} of ${game.time.calendar.daysPerYear}</i>${moonInfo}
+  <i>Day ${dayOfYear} of ${game.time.calendar.daysPerYear}</i><br>
+  <i>Total Calendar Day: ${totalCalendarDay}</i>${moonInfo}
 `;
 
 ChatMessage.create({ content: message });

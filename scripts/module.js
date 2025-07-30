@@ -41,14 +41,11 @@ Hooks.once("init", async () => {
     calculateMoonPhase(moon, year, dayOfYear) {
       // Use offset to determine the cycle day for day 1 of year 1
       const offset = moon.offset || 0;
-      console.log("offset", offset);
 
-      // Calculate days since day 1 of year 1
-      const daysSinceYear1 = this.getDaysSinceYear1(year, dayOfYear);
-      console.log("daysSinceYear1", daysSinceYear1);
+      // Calculate total calendar day since day 1 of year 1
+      const totalCalendarDay = this.getTotalCalendarDay(year, dayOfYear);
       // Calculate current cycle day using offset
-      const cycleDay = (offset + daysSinceYear1) % moon.cycleLength;
-      console.log("cycleDay", cycleDay);
+      const cycleDay = (offset + totalCalendarDay) % moon.cycleLength;
       // Find current phase
       let phaseIndex = 0;
       let phaseDay = 0;
@@ -140,7 +137,6 @@ Hooks.once("init", async () => {
      * Determines intercalary status internally.
      */
     componentsToTime(components) {
-      console.log("[componentsToTime] received:", components);
       const { year, month, day, hour, minute, second } = components;
       const yearZero = this.yearZero;
       const daysPerYear = this.daysPerYear;
@@ -175,7 +171,7 @@ Hooks.once("init", async () => {
           );
         } else if (typeof components.intercalary === "number") {
           const intercalaryMonths = this.months.filter((m) => m.intercalary);
-          m = intercalaryMonths[components.intercalary - 1];
+          m = intercalaryMonths[components.intercalary]; // intercalary is 0-based index
         } else {
           m = this.months.find((m) => m.intercalary);
         }
@@ -246,36 +242,35 @@ Hooks.once("init", async () => {
     }
 
     /**
-     * Returns the Kings Age number (0-based) for a given year.
-     * @param {number} year - The absolute year (0-based)
-     * @returns {number} The Kings Age (0-based)
+     * Returns the Kings Age number (1-based) for a given year.
+     * @param {number} year - The absolute year (1-based)
+     * @returns {number} The Kings Age (1-based)
      */
     static getKingsAge(year) {
       return Math.floor(year / 77) + 1;
     }
 
     /**
-     * Returns the year within the current Kings Age (0-based).
-     * @param {number} year - The absolute year (0-based)
-     * @returns {number} The year of the Kings Age (0-based)
+     * Returns the year within the current Kings Age (1-based).
+     * @param {number} year - The absolute year (1-based)
+     * @returns {number} The year of the Kings Age (1-based)
      */
     static getKingsAgeYear(year) {
-      return year % 77;
+      return (year % 77) + 1;
     }
 
     /**
-     * Calculates the total days since year 1 (or year zero depending on calendar configuration).
-     * @param {number} year - The absolute year
-     * @param {number} dayOfYear - The day of the year (0-based)
-     * @returns {number} Total days since year 1
+     * Calculates the total calendar day since year 1 (or year zero depending on calendar configuration).
+     * @param {number} year - The absolute year (1-based)
+     * @param {number} dayOfYear - The day of the year (1-based)
+     * @returns {number} Total calendar day since year 1
      */
-    getDaysSinceYear1(year, dayOfYear) {
-      return year * this.daysPerYear + dayOfYear;
+    getTotalCalendarDay(year, dayOfYear) {
+      return (year - 1) * this.daysPerYear + dayOfYear;
     }
   }
   CONFIG.time.worldCalendarClass = DarkSunCalendar;
   CONFIG.time.worldCalendarConfig = calendarData;
-  console.log(game.i18n.localize("DSR-CALENDAR.RegisteredDS"));
 });
 
 // The rest of your logic (promptAndSetCalendarDate, setCalendarDate, etc.) can remain in the ready hook if needed.
@@ -301,7 +296,6 @@ Hooks.once("ready", async () => {
       minute: minute !== undefined && minute !== null ? minute : now.minute,
       second: second !== undefined && second !== null ? second : now.second,
     };
-    console.log("[setCalendarDate] components:", components);
     dsrCalendar.year = year;
     dsrCalendar.month = month;
     dsrCalendar.day = day;
@@ -309,7 +303,6 @@ Hooks.once("ready", async () => {
     dsrCalendar.minute = minute;
     dsrCalendar.second = second;
     const worldTime = game.time.calendar.componentsToTime(components);
-    console.log("[setCalendarDate] worldTime:", worldTime);
     await game.time.set(worldTime);
     ui.notifications.info(
       game.i18n
