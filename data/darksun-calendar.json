@@ -1,0 +1,409 @@
+{
+    "name": "Athas",
+    "description": "The harsh calendar of the dying world of Athas from the Dark Sun D&D setting. Features a complex system of named years that cycle through 77 different combinations, with intercalary periods marking the deadly seasonal extremes.",
+    "years": {
+        "yearZero": 0,
+        "firstWeekday": 0,
+        "name": {
+            "values": [
+                "Ral's Fury",
+                "Friend's Contemplation",
+                "Desert's Vengeance",
+                "Priest's Slumber",
+                "Wind's Defiance",
+                "Dragon's Reverance",
+                "Mountain's Agitation",
+                "King's Fury",
+                "Silt's Contemplation",
+                "Enemy's Vengeance",
+                "Guthay's Slumber",
+                "Ral's Defiance",
+                "Friend's Reverance",
+                "Desert's Agitation",
+                "Priest's Fury",
+                "Wind's Contemplation",
+                "Dragon's Vengeance",
+                "Mountain's Slumber",
+                "King's Defiance",
+                "Silt's Reverance",
+                "Enemy's Agitation",
+                "Guthay's Fury",
+                "Ral's Contemplation",
+                "Friend's Vengeance",
+                "Desert's Slumber",
+                "Priest's Defiance",
+                "Wind's Reverance",
+                "Dragon's Agitation",
+                "Mountain's Fury",
+                "King's Contemplation",
+                "Silt's Vengeance",
+                "Enemy's Slumber",
+                "Guthay's Defiance",
+                "Ral's Reverance",
+                "Friend's Agitation",
+                "Desert's Fury",
+                "Priest's Contemplation",
+                "Wind's Vengeance",
+                "Dragon's Slumber",
+                "Mountain's Defiance",
+                "King's Reverance",
+                "Silt's Agitation",
+                "Enemy's Fury",
+                "Guthay's Contemplation",
+                "Ral's Vengeance",
+                "Friend's Slumber",
+                "Desert's Defiance",
+                "Priest's Reverance",
+                "Wind's Agitation",
+                "Dragon's Fury",
+                "Mountain's Contemplation",
+                "King's Vengeance",
+                "Silt's Slumber",
+                "Enemy's Defiance",
+                "Guthay's Reverance",
+                "Ral's Agitation",
+                "Friend's Fury",
+                "Desert's Contemplation",
+                "Priest's Vengeance",
+                "Wind's Slumber",
+                "Dragon's Defiance",
+                "Mountain's Reverance",
+                "King's Agitation",
+                "Silt's Fury",
+                "Enemy's Contemplation",
+                "Guthay's Vengeance",
+                "Ral's Slumber",
+                "Friend's Defiance",
+                "Desert's Reverance",
+                "Priest's Agitation",
+                "Wind's Fury",
+                "Dragon's Contemplation",
+                "Mountain's Vengeance",
+                "King's Slumber",
+                "Silt's Defiance",
+                "Enemy's Reverance",
+                "Guthay's Agitation"
+            ]
+        }
+    },
+    "leapYear": {
+        "rule": "none"
+    },
+    "months": {
+        "values": [
+            {
+                "name": "Scorch",
+                "abbreviation": "Scorch",
+                "ordinal": 1,
+                "days": 30,
+                "dayOffset": 0,
+                "description": "The beginning of the annual heat cycle when the brutal Athasian sun starts its merciless assault on the dying world."
+            },
+            {
+                "name": "Morrow",
+                "abbreviation": "Morrow",
+                "ordinal": 2,
+                "days": 30,
+                "dayOffset": 30,
+                "description": "The month that follows Scorch, when hope for survival becomes increasingly desperate under the relentless heat."
+            },
+            {
+                "name": "Rest",
+                "abbreviation": "Rest",
+                "ordinal": 3,
+                "days": 30,
+                "dayOffset": 60,
+                "description": "The month of respite, when the sun's heat is at its peak, but the world is still alive."
+            },
+            {
+                "name": "Gather",
+                "abbreviation": "Gather",
+                "ordinal": 4,
+                "days": 30,
+                "dayOffset": 90,
+                "description": "The month of gathering, when the world is at its most fertile and the people are at their most desperate."
+            },
+            {
+                "name": "Cooling Sun",
+                "abbreviation": "Cooling Sun",
+                "days": 5,
+                "intercalary": true,
+                "dayOffset": 120,
+                "description": "A five-day period when the sun's killing heat allegedly lessens. Even this 'cooling' would be deadly on any other world, but on Athas it represents a brief chance for survival and preparation."
+            },
+            {
+                "name": "Breeze",
+                "abbreviation": "Breeze",
+                "ordinal": 6,
+                "days": 30,
+                "dayOffset": 125,
+                "description": "Named ironically, as any 'breeze' on Athas carries scorching heat and the dust of a world slowly dying."
+            },
+            {
+                "name": "Mist",
+                "abbreviation": "Mist",
+                "ordinal": 7,
+                "days": 30,
+                "dayOffset": 155,
+                "description": "The month of rare atmospheric moisture, though even mist on Athas often brings more suffering than relief."
+            },
+            {
+                "name": "Bloom",
+                "abbreviation": "Bloom",
+                "ordinal": 8,
+                "days": 30,
+                "dayOffset": 185,
+                "description": "The cruel irony of bloom time on Athas, where few things flourish and those that do are often as dangerous as they are rare."
+            },
+            {
+                "name": "Haze",
+                "abbreviation": "Haze",
+                "ordinal": 9,
+                "days": 30,
+                "dayOffset": 215,
+                "description": "The month when shimmering heat distorts the already nightmarish landscape of the dying world."
+            },
+            {
+                "name": "Soaring Sun",
+                "abbreviation": "Soaring Sun",
+                "days": 5,
+                "intercalary": true,
+                "dayOffset": 245,
+                "ordinal": 10,
+                "description": "The five-day period when the sun reaches its most lethal intensity, making even the most basic survival activities nearly impossible."
+            },
+            {
+                "name": "Hoard",
+                "abbreviation": "Hoard",
+                "ordinal": 11,
+                "days": 30,
+                "dayOffset": 250,
+                "description": "The desperate time of hoarding whatever resources can be found before the sun reaches its most lethal intensity."
+            },
+            {
+                "name": "Wind",
+                "abbreviation": "Wind",
+                "ordinal": 12,
+                "days": 30,
+                "dayOffset": 280,
+                "description": "The month of searing winds that strip moisture from the land and flesh alike in the endless Athasian desert."
+            },
+            {
+                "name": "Sorrow",
+                "abbreviation": "Sorrow",
+                "ordinal": 13,
+                "days": 30,
+                "dayOffset": 310,
+                "description": "The month that embodies the despair of Athas, when the weight of survival crushes hope from even the strongest souls."
+            },
+            {
+                "name": "Smolder",
+                "abbreviation": "Smolder",
+                "ordinal": 14,
+                "days": 30,
+                "dayOffset": 340,
+                "description": "The final month before the sun's peak fury, when the very air seems to burn and the world smolders in anticipation."
+            },
+            {
+                "name": "Highest Sun",
+                "abbreviation": "Highest Sun",
+                "days": 5,
+                "intercalary": true,
+                "dayOffset": 370,
+                "ordinal": 15,
+                "description": "The final five-day period of the year, when the sun's power reaches its absolute peak and survival becomes nearly impossible."
+            }
+        ]
+    },
+    "days": {
+        "values": [
+            {
+                "name": "1 Day",
+                "abbreviation": "1",
+                "ordinal": 1
+            },
+            {
+                "name": "2 Day",
+                "abbreviation": "2",
+                "ordinal": 2
+            },
+            {
+                "name": "3 Day",
+                "abbreviation": "3",
+                "ordinal": 3
+            },
+            {
+                "name": "4 Day",
+                "abbreviation": "4",
+                "ordinal": 4
+            },
+            {
+                "name": "5 Day",
+                "abbreviation": "5",
+                "ordinal": 5
+            },
+            {
+                "name": "6 Day",
+                "abbreviation": "6",
+                "ordinal": 6
+            }
+        ],
+        "daysPerYear": 375,
+        "hoursPerDay": 24,
+        "minutesPerHour": 60,
+        "secondsPerMinute": 60
+    },
+    "seasons": {
+        "values": [
+            {
+                "name": "High Sun",
+                "monthStart": 11,
+                "monthEnd": 2
+            },
+            {
+                "name": "Sun Descending",
+                "monthStart": 3,
+                "monthEnd": 6
+            },
+            {
+                "name": "Sun Ascending",
+                "monthStart": 7,
+                "monthEnd": 10
+            }
+        ]
+    },
+    "moons": [
+        {
+            "name": "Ral",
+            "cycleLength": 33,
+            "offset": 13,
+            "firstNewMoon": {
+                "year": 0,
+                "month": 12,
+                "day": 14
+            },
+            "phases": [
+                {
+                    "name": "New Moon",
+                    "length": 2,
+                    "singleDay": false,
+                    "icon": "new"
+                },
+                {
+                    "name": "Waxing Crescent",
+                    "length": 7,
+                    "singleDay": false,
+                    "icon": "waxing-crescent"
+                },
+                {
+                    "name": "First Quarter",
+                    "length": 2,
+                    "singleDay": false,
+                    "icon": "first-quarter"
+                },
+                {
+                    "name": "Waxing Gibbous",
+                    "length": 6,
+                    "singleDay": false,
+                    "icon": "waxing-gibbous"
+                },
+                {
+                    "name": "Full Moon",
+                    "length": 1,
+                    "singleDay": false,
+                    "icon": "full"
+                },
+                {
+                    "name": "Waning Gibbous",
+                    "length": 6,
+                    "singleDay": false,
+                    "icon": "waning-gibbous"
+                },
+                {
+                    "name": "Last Quarter",
+                    "length": 2,
+                    "singleDay": false,
+                    "icon": "last-quarter"
+                },
+                {
+                    "name": "Waning Crescent",
+                    "length": 7,
+                    "singleDay": false,
+                    "icon": "waning-crescent"
+                }
+            ],
+            "color": "#8de715",
+            "translations": {
+                "en": {
+                    "description": "The smaller, green-yellow moon of Athas, companion to Guthay in the hostile sky"
+                }
+            }
+        },
+        {
+            "name": "Guthay",
+            "cycleLength": 125,
+            "offset": 62,
+            "firstNewMoon": {
+                "year": 0,
+                "month": 3,
+                "day": 3
+            },
+            "phases": [
+                {
+                    "name": "New Moon",
+                    "length": 9,
+                    "singleDay": false,
+                    "icon": "new"
+                },
+                {
+                    "name": "Waxing Crescent",
+                    "length": 25,
+                    "singleDay": false,
+                    "icon": "waxing-crescent"
+                },
+                {
+                    "name": "First Quarter",
+                    "length": 6,
+                    "singleDay": false,
+                    "icon": "first-quarter"
+                },
+                {
+                    "name": "Waxing Gibbous",
+                    "length": 22,
+                    "singleDay": false,
+                    "icon": "waxing-gibbous"
+                },
+                {
+                    "name": "Full Moon",
+                    "length": 9,
+                    "singleDay": false,
+                    "icon": "full"
+                },
+                {
+                    "name": "Waning Gibbous",
+                    "length": 22,
+                    "singleDay": false,
+                    "icon": "waning-gibbous"
+                },
+                {
+                    "name": "Last Quarter",
+                    "length": 7,
+                    "singleDay": false,
+                    "icon": "last-quarter"
+                },
+                {
+                    "name": "Waning Crescent",
+                    "length": 25,
+                    "singleDay": false,
+                    "icon": "waning-crescent"
+                }
+            ],
+            "color": "#e7dd15",
+            "translations": {
+                "en": {
+                    "description": "The golden moon of dying Athas, scorched by the crimson sun"
+                }
+            }
+        }
+    ]
+}

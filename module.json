@@ -1,0 +1,33 @@
+{
+    "id": "dsr-calendar",
+    "title": "DSR Calendar",
+    "description": "A calendar module for DSR",
+    "version": "#{VERSION}#",
+    "compatibility": {
+        "minimum": 13,
+        "verified": 13,
+        "maximum": 13
+    },
+    "authors": [
+        {
+            "name": "Chris Allbritton",
+            "url": "https://github.com/ctbritt",
+            "discord": "callbritton"
+        }
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "lang/en.json"
+        }
+    ],
+    "relationships": {
+        "systems": [],
+        "requires": []
+    },
+    "esmodules": [
+        "scripts/extend-calendar.js",
+        "scripts/module.js"
+    ]
+}
