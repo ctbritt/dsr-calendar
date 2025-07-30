@@ -2,7 +2,7 @@
 const components = await game.time.calendar.timeToComponents(
   game.time.worldTime
 );
-console.warn("components", components);
+console.warn("Slot 1 components", components);
 if (!components) {
   ui.notifications.warn("Calendar date was not set.");
   return;
@@ -20,13 +20,12 @@ await setCalendarDate(
 
 const months = game.time.calendar.months;
 let intercalary = months[components.month].intercalary; // Already 0-based
-console.log(months[components.month]);
 const days = game.time.calendar.days;
 const monthName = game.i18n.localize(
   months[components.month]?.name ?? `Month ${components.month + 1}`
 );
 const dayName = game.i18n.localize(
-  days[(components.day - 1) % days.length]?.name ?? `Day ${components.day}`
+  days[(components.day - 1) % days.length]?.name ?? `Day ${components.day}` // Convert 1-based day to 0-based array index
 );
 
 // Optionally, get season for both calendars
@@ -44,7 +43,6 @@ const moonDayOfYear = game.time.calendar.getDayOfYear(components);
 const moon = game.time.calendar.moons.map((moon) =>
   game.time.calendar.calculateMoonPhase(moon, components.year, moonDayOfYear)
 );
-console.log("moon", moon);
 
 // Display moon information
 let moonInfo = "";
@@ -74,7 +72,12 @@ const yearName = CONFIG.time.worldCalendarClass.getYearName(
 
 // Calculate day of the year
 const dayOfYear = game.time.calendar.getDayOfYear(components);
-console.log("dayOfYear", dayOfYear);
+
+// Calculate total calendar day
+const totalCalendarDay = game.time.calendar.getTotalCalendarDay(
+  components.year,
+  dayOfYear
+);
 
 // Time formatting
 const use24Hour = game.settings.get("dsr-calendar", "use24HourTime");
@@ -108,7 +111,8 @@ const message = `
   ${dateLine}<br>
   <i>${season}</i><br>
   <b>${timeString}</b><br>
-  <i>Day ${dayOfYear} of ${game.time.calendar.daysPerYear}</i>${moonInfo}
+  <i>Day ${dayOfYear} of ${game.time.calendar.daysPerYear}</i><br>
+  <i>Total Calendar Day: ${totalCalendarDay}</i>${moonInfo}
 `;
 
 ChatMessage.create({ content: message });

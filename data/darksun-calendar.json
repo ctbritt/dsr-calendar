@@ -276,7 +276,7 @@
         {
             "name": "Ral",
             "cycleLength": 33,
-            "offset": 13,
+            "offset": 0,
             "firstNewMoon": {
                 "year": 0,
                 "month": 12,
@@ -342,7 +342,7 @@
         {
             "name": "Guthay",
             "cycleLength": 125,
-            "offset": 62,
+            "offset": 0,
             "firstNewMoon": {
                 "year": 0,
                 "month": 3,
