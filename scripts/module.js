@@ -248,7 +248,11 @@ Hooks.once("init", async () => {
      * @returns {number} The Kings Age (1-based)
      */
     static getKingsAge(year) {
-      return Math.floor(year / 77) + 1;
+      // Handle the first 77 years (Kings Age 1)
+      if (year <= 77) {
+        return 1;
+      }
+      return Math.floor((year - 77) / 77) + 1;
     }
 
     /**
@@ -257,7 +261,12 @@ Hooks.once("init", async () => {
      * @returns {number} The year of the Kings Age (1-based)
      */
     static getKingsAgeYear(year) {
-      return (year % 77) + 1;
+      // Handle the first 77 years (Kings Age 1)
+      if (year <= 77) {
+        return year;
+      }
+      const remainder = (year - 77) % 77;
+      return remainder === 0 ? 77 : remainder;
     }
 
     /**
@@ -289,18 +298,19 @@ Hooks.once("ready", async () => {
     const calendarConfig = CONFIG.time.worldCalendarConfig;
     const dsrCalendar = new CalendarClass(calendarConfig, {});
     const now = game.time.calendar.timeToComponents(game.time.worldTime);
-
+    console.log("now", now);
     // Convert 1-based month to 0-based for internal use
     const monthIndex = month;
 
     const components = {
       year: year,
-      month: monthIndex,
+      month: monthIndex - 1,
       day: day,
       hour: hour !== undefined && hour !== null ? hour : now.hour,
       minute: minute !== undefined && minute !== null ? minute : now.minute,
       second: second !== undefined && second !== null ? second : now.second,
     };
+    console.log("components", components);
     dsrCalendar.year = year;
     dsrCalendar.month = monthIndex;
     dsrCalendar.day = day;
