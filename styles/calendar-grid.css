@@ -1,0 +1,928 @@
+/* ========================================
+   DARK SUN CALENDAR - INDEPENDENT STYLESHEET
+   ======================================== */
+
+/* CSS Variables - Dark Sun Theme */
+:root {
+    /* Primary Color Palette - Desert/Sun Theme */
+    --dsc-primary: #d4a574;           /* Sandy gold */
+    --dsc-primary-dark: #b8956a;      /* Darker sand */
+    --dsc-primary-light: #e8c499;     /* Light sand */
+    
+    /* Secondary Colors */
+    --dsc-secondary: #8b4513;         /* Saddle brown */
+    --dsc-secondary-dark: #654321;    /* Dark brown */
+    --dsc-secondary-light: #a0522d;   /* Sienna */
+    
+    /* Accent Colors */
+    --dsc-accent-fire: #ff6b35;       /* Fire/heat */
+    --dsc-accent-blood: #8b0000;      /* Dark red */
+    --dsc-accent-sun: #ffd700;        /* Gold */
+    
+    /* Neutral Colors */
+    --dsc-bg-primary: #f5f1e8;        /* Light parchment */
+    --dsc-bg-secondary: #ffffff;      /* Pure white */
+    --dsc-bg-tertiary: #f9f6f0;       /* Off-white */
+    --dsc-bg-dark: #2d2d2d;           /* Dark background */
+    
+    /* Text Colors */
+    --dsc-text-primary: #2c1810;      /* Dark brown text */
+    --dsc-text-secondary: #5a4a3a;    /* Medium brown */
+    --dsc-text-muted: #8a7a6a;        /* Light brown */
+    --dsc-text-inverse: #ffffff;      /* White text */
+    
+    /* Border Colors */
+    --dsc-border-light: #d4c4a8;      /* Light border */
+    --dsc-border-medium: #b8a690;     /* Medium border */
+    --dsc-border-dark: #8b7355;       /* Dark border */
+    
+    /* State Colors */
+    --dsc-success: #228b22;           /* Forest green */
+    --dsc-warning: #ff8c00;           /* Dark orange */
+    --dsc-danger: #dc143c;            /* Crimson */
+    --dsc-info: #4682b4;              /* Steel blue */
+    
+    /* Intercalary Colors */
+    --dsc-intercalary-bg: #fff8dc;     /* Cornsilk */
+    --dsc-intercalary-border: #daa520; /* Goldenrod */
+    --dsc-intercalary-text: #8b4513;   /* Saddle brown */
+    
+    /* Typography */
+    --dsc-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --dsc-font-size-xs: 10px;
+    --dsc-font-size-sm: 12px;
+    --dsc-font-size-md: 14px;
+    --dsc-font-size-lg: 16px;
+    --dsc-font-size-xl: 18px;
+    
+    /* Spacing */
+    --dsc-spacing-xs: 2px;
+    --dsc-spacing-sm: 4px;
+    --dsc-spacing-md: 8px;
+    --dsc-spacing-lg: 12px;
+    --dsc-spacing-xl: 16px;
+    --dsc-spacing-xxl: 24px;
+    
+    /* Shadows */
+    --dsc-shadow-sm: 0 1px 3px rgba(44, 24, 16, 0.1);
+    --dsc-shadow-md: 0 2px 6px rgba(44, 24, 16, 0.15);
+    --dsc-shadow-lg: 0 4px 12px rgba(44, 24, 16, 0.2);
+    
+    /* Transitions */
+    --dsc-transition-fast: 0.15s ease;
+    --dsc-transition-normal: 0.3s ease;
+    
+    /* Border Radius */
+    --dsc-radius-sm: 3px;
+    --dsc-radius-md: 5px;
+    --dsc-radius-lg: 8px;
+    --dsc-radius-round: 50%;
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+.dsc-calendar-widget {
+    font-family: 'Packard Antique Bold', fantasy, ui-serif;
+    font-size: var(--dsc-font-size-md);
+    line-height: 1.4;
+    color: var(--dsc-text-primary);
+    background: var(--dsc-bg-primary);
+    border-radius: var(--dsc-radius-md);
+    box-shadow: var(--dsc-shadow-md);
+}
+
+.dsc-calendar-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--dsc-spacing-lg);
+    background: var(--dsc-bg-primary);
+    border-radius: var(--dsc-radius-md);
+}
+
+/* ========================================
+   ERROR STATE
+   ======================================== */
+
+.dsc-error-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--dsc-spacing-xxl);
+    color: var(--dsc-danger);
+    background: rgba(220, 20, 60, 0.1);
+    border: 1px solid rgba(220, 20, 60, 0.3);
+    border-radius: var(--dsc-radius-md);
+    margin: var(--dsc-spacing-lg) 0;
+    font-weight: 500;
+}
+
+.dsc-error-state i {
+    margin-right: var(--dsc-spacing-md);
+    font-size: var(--dsc-font-size-lg);
+}
+
+/* ========================================
+   CALENDAR HEADER
+   ======================================== */
+
+.dsc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--dsc-spacing-sm);
+    padding: var(--dsc-spacing-lg);
+    background: var(--dsc-bg-secondary);
+    border: 1px solid var(--dsc-border-light);
+    border-radius: var(--dsc-radius-md);
+    box-shadow: var(--dsc-shadow-sm);
+}
+
+.dsc-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dsc-spacing-md);
+}
+
+.dsc-month-nav,
+.dsc-year-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--dsc-spacing-md);
+    justify-content: space-between;
+}
+
+.dsc-month-nav .dsc-btn:first-child,
+.dsc-year-nav .dsc-btn:first-child {
+    order: 1;
+}
+
+.dsc-month-nav .dsc-btn:last-child,
+.dsc-year-nav .dsc-btn:last-child {
+    order: 3;
+}
+
+.dsc-month-info,
+.dsc-year-display {
+    order: 2;
+    flex: 1;
+}
+
+/* Ensure navigation buttons have consistent width for alignment */
+.dsc-month-nav .dsc-btn,
+.dsc-year-nav .dsc-btn {
+    min-width: 40px;
+    flex-shrink: 0;
+}
+
+.dsc-btn {
+    background: var(--dsc-bg-tertiary);
+    border: 1px solid var(--dsc-border-medium);
+    border-radius: var(--dsc-radius-sm);
+    padding: var(--dsc-spacing-sm) var(--dsc-spacing-md);
+    cursor: pointer;
+    font-size: var(--dsc-font-size-sm);
+    color: var(--dsc-text-primary);
+    font-family: inherit;
+    transition: all var(--dsc-transition-fast);
+    font-weight: 500;
+}
+
+.dsc-btn:hover {
+    background: var(--dsc-primary-light);
+    border-color: var(--dsc-border-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--dsc-shadow-sm);
+}
+
+.dsc-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.dsc-month-info {
+    display: flex;
+    align-items: center;
+    gap: var(--dsc-spacing-sm);
+    min-width: 120px;
+    justify-content: center;
+}
+
+.dsc-month-name {
+    font-weight: bold;
+    font-size: var(--dsc-font-size-xl);
+    color: var(--dsc-text-primary);
+}
+
+.dsc-month-description {
+    color: var(--dsc-text-secondary);
+    cursor: help;
+    font-size: var(--dsc-font-size-sm);
+}
+
+.dsc-year-display {
+    background: none;
+    border: none;
+    padding: var(--dsc-spacing-lg) var(--dsc-spacing-md);
+    cursor: pointer;
+    font-size: var(--dsc-font-size-sm);
+    color: var(--dsc-text-primary);
+    font-family: 'Packard Antique Bold', fantasy, ui-serif;
+    font-weight: 500;
+    transition: all var(--dsc-transition-fast);
+    min-width: 200px;
+    text-align: center;
+    white-space: pre-line;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dsc-year-display:hover {
+    background: var(--dsc-primary-light);
+    border-color: var(--dsc-border-dark);
+}
+
+.dsc-header-actions {
+    display: flex;
+    gap: var(--dsc-spacing-sm);
+}
+
+.dsc-btn-today {
+    background: var(--dsc-primary);
+    border: 1px solid var(--dsc-primary-dark);
+    color: var(--dsc-text-inverse);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: var(--dsc-radius-md);
+    font-size: var(--dsc-font-size-lg);
+}
+
+.dsc-btn-today:hover {
+    background: var(--dsc-primary-dark);
+    color: var(--dsc-text-inverse);
+}
+
+/* ========================================
+   SEASON INFORMATION
+   ======================================== */
+
+.dsc-season-info {
+    margin-bottom: var(--dsc-spacing-sm);
+    padding: var(--dsc-spacing-sm);
+    background: var(--dsc-bg-secondary);
+    border: 1px solid var(--dsc-border-medium);
+    border-radius: var(--dsc-radius-md);
+    box-shadow: var(--dsc-shadow-sm);
+}
+
+.dsc-season-header {
+    display: flex;
+    align-items: center;
+    gap: var(--dsc-spacing-md);
+}
+
+.dsc-season-header i {
+    color: var(--dsc-accent-sun);
+    font-size: var(--dsc-font-size-lg);
+}
+
+.dsc-season-name {
+    font-weight: bold;
+    font-size: var(--dsc-font-size-md);
+    color: var(--dsc-text-primary);
+    letter-spacing: 0.5px;
+}
+
+.dsc-season-description {
+    margin-left: auto;
+    color: var(--dsc-text-muted);
+    cursor: help;
+}
+
+.dsc-season-description i {
+    font-size: var(--dsc-font-size-sm);
+    color: var(--dsc-text-muted);
+}
+
+.dsc-season-description-full {
+    font-size: var(--dsc-font-size-sm);
+    color: var(--dsc-text-secondary);
+    line-height: 1.4;
+    font-style: italic;
+    padding-top: var(--dsc-spacing-sm);
+    border-top: 1px solid var(--dsc-border-light);
+}
+
+/* ========================================
+   WEEKDAY HEADERS
+   ======================================== */
+
+.dsc-weekdays {
+    display: grid;
+    grid-template-columns: repeat(var(--weekday-count, 7), 1fr);
+    gap: var(--dsc-spacing-xs);
+    margin-bottom: var(--dsc-spacing-sm);
+}
+
+.dsc-weekday {
+    text-align: center;
+    padding: var(--dsc-spacing-md) var(--dsc-spacing-sm);
+    background: var(--dsc-secondary);
+    color: var(--dsc-text-inverse);
+    border-radius: var(--dsc-radius-sm);
+    font-weight: bold;
+    font-size: var(--dsc-font-size-sm);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* ========================================
+   CALENDAR GRID
+   ======================================== */
+
+.dsc-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dsc-spacing-xs);
+    flex: 1;
+}
+
+.dsc-week {
+    display: grid;
+    grid-template-columns: repeat(var(--weekday-count, 7), 1fr);
+    gap: var(--dsc-spacing-xs);
+    min-height: 40px;
+}
+
+.dsc-day {
+    position: relative;
+    background: var(--dsc-bg-secondary);
+    border: 1px solid var(--dsc-border-light);
+    border-radius: var(--dsc-radius-sm);
+    padding: var(--dsc-spacing-sm);
+    cursor: pointer;
+    transition: all var(--dsc-transition-fast);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 35px;
+    font-weight: 500;
+}
+
+.dsc-day:hover {
+    background: var(--dsc-primary-light);
+    border-color: var(--dsc-border-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--dsc-shadow-sm);
+}
+
+.dsc-day-empty {
+    background: var(--dsc-bg-tertiary);
+    border-color: var(--dsc-border-light);
+    cursor: default;
+    opacity: 0.5;
+}
+
+.dsc-day-empty:hover {
+    transform: none;
+    box-shadow: none;
+    background: var(--dsc-bg-tertiary);
+}
+
+.dsc-day-today {
+    background: var(--dsc-primary);
+    color: var(--dsc-text-inverse);
+    border-color: var(--dsc-primary-dark);
+    font-weight: bold;
+    box-shadow: var(--dsc-shadow-md);
+}
+
+.dsc-day-today:hover {
+    background: var(--dsc-primary-dark);
+    color: var(--dsc-text-inverse);
+}
+
+.dsc-day-view {
+    border-color: var(--dsc-accent-fire);
+    border-width: 2px;
+    box-shadow: 0 0 0 1px var(--dsc-accent-fire);
+}
+
+.dsc-day-number {
+    font-size: var(--dsc-font-size-md);
+    font-weight: 500;
+    line-height: 1;
+}
+
+/* ========================================
+   INTERCALARY PERIODS
+   ======================================== */
+
+.dsc-intercalary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--dsc-spacing-lg);
+    margin-bottom: var(--dsc-spacing-md);
+    margin-top: 0;
+}
+
+.dsc-day-intercalary {
+    background: var(--dsc-intercalary-bg);
+    border-color: var(--dsc-intercalary-border);
+    color: var(--dsc-intercalary-text);
+    font-weight: bold;
+    min-width: 48px;
+    max-width: 56px;
+    flex: 0 0 48px;
+    margin: 0 var(--dsc-spacing-xs);
+    box-shadow: var(--dsc-shadow-sm);
+}
+
+.dsc-day-intercalary:hover {
+    background: var(--dsc-accent-sun);
+    border-color: var(--dsc-primary-dark);
+    color: var(--dsc-text-primary);
+}
+
+.dsc-day-intercalary.dsc-day-today,
+.dsc-day-intercalary.dsc-day-view {
+    background: var(--dsc-accent-sun);
+    color: var(--dsc-text-primary);
+    border-color: var(--dsc-primary-dark);
+    box-shadow: 0 0 0 2px var(--dsc-primary-dark);
+    z-index: 1;
+}
+
+.dsc-intercalary-label-row {
+    display: flex;
+    width: 100%;
+    margin-top: var(--dsc-spacing-sm);
+    margin-bottom: var(--dsc-spacing-xs);
+}
+
+.dsc-intercalary-label {
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    font-size: var(--dsc-font-size-md);
+    background: var(--dsc-intercalary-border);
+    color: var(--dsc-text-inverse);
+    border-radius: var(--dsc-radius-sm) var(--dsc-radius-sm) 0 0;
+    padding: var(--dsc-spacing-sm) 0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid var(--dsc-intercalary-border);
+    border-bottom: none;
+}
+
+/* ========================================
+   NOTE INDICATORS
+   ======================================== */
+
+.dsc-day-notes-general {
+    background: var(--dsc-warning);
+    color: var(--dsc-text-inverse);
+}
+
+.dsc-day-notes-event {
+    background: var(--dsc-success);
+    color: var(--dsc-text-inverse);
+}
+
+.dsc-day-notes-weather {
+    background: var(--dsc-info);
+    color: var(--dsc-text-inverse);
+}
+
+.dsc-day-notes-encounter {
+    background: var(--dsc-danger);
+    color: var(--dsc-text-inverse);
+}
+
+.dsc-note-indicator {
+    position: absolute;
+    top: var(--dsc-spacing-xs);
+    right: var(--dsc-spacing-xs);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: var(--dsc-font-size-xs);
+    transition: transform var(--dsc-transition-fast);
+}
+
+.dsc-note-indicator:hover {
+    transform: scale(1.2);
+}
+
+.dsc-note-count {
+    display: inline-block;
+    background: var(--dsc-primary);
+    color: var(--dsc-text-inverse);
+    border-radius: var(--dsc-radius-round);
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    font-size: var(--dsc-font-size-xs);
+    font-weight: bold;
+    box-shadow: var(--dsc-shadow-sm);
+}
+
+.dsc-note-count-general { background: var(--dsc-warning); }
+.dsc-note-count-event { background: var(--dsc-success); }
+.dsc-note-count-weather { background: var(--dsc-info); }
+.dsc-note-count-encounter { background: var(--dsc-danger); }
+
+/* ========================================
+   MOON PHASE INDICATORS
+   ======================================== */
+
+.dsc-moon-container {
+    position: absolute;
+    top: var(--dsc-spacing-xs);
+    left: var(--dsc-spacing-xs);
+    display: flex;
+    gap: var(--dsc-spacing-sm);
+    z-index: 2;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.dsc-moon {
+    font-size: 9px;
+    cursor: help;
+    display: inline-block;
+    position: relative;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 1px rgba(44, 24, 16, 0.3));
+    transition: transform var(--dsc-transition-fast);
+}
+
+.dsc-moon:hover {
+    transform: scale(1.2);
+}
+
+/* Moon Phase Transforms */
+.dsc-moon-waning-crescent { transform: scaleX(-1); }
+.dsc-moon-first-quarter { transform: rotate(0deg); }
+.dsc-moon-last-quarter { transform: rotate(90deg); }
+
+/* Phase-specific styles */
+.dsc-moon-new { opacity: 0.5; }
+.dsc-moon-full { 
+    text-shadow: 0 0 3px currentColor;
+    filter: drop-shadow(0 0 2px currentColor);
+}
+.dsc-moon-waxing-gibbous,
+.dsc-moon-waning-gibbous { opacity: 0.85; }
+.dsc-moon-waxing-crescent,
+.dsc-moon-waning-crescent,
+.dsc-moon-first-quarter,
+.dsc-moon-last-quarter { opacity: 0.75; }
+
+/* ========================================
+   QUICK NOTE BUTTON
+   ======================================== */
+
+.dsc-quick-note {
+    position: absolute;
+    bottom: var(--dsc-spacing-xs);
+    right: var(--dsc-spacing-xs);
+    background: var(--dsc-success);
+    color: var(--dsc-text-inverse);
+    border: none;
+    border-radius: var(--dsc-radius-round);
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+    font-size: var(--dsc-font-size-xs);
+    opacity: 0;
+    transition: all var(--dsc-transition-fast);
+    box-shadow: var(--dsc-shadow-sm);
+}
+
+.dsc-day:hover .dsc-quick-note {
+    opacity: 1;
+}
+
+.dsc-quick-note:hover {
+    background: var(--dsc-primary);
+    transform: scale(1.1);
+}
+
+/* ========================================
+   CALENDAR FOOTER
+   ======================================== */
+
+.dsc-footer {
+    margin-top: var(--dsc-spacing-lg);
+    padding: var(--dsc-spacing-md);
+    background: var(--dsc-bg-secondary);
+    border: 1px solid var(--dsc-border-light);
+    border-radius: var(--dsc-radius-md);
+    font-size: var(--dsc-font-size-sm);
+    color: var(--dsc-text-secondary);
+    box-shadow: var(--dsc-shadow-sm);
+}
+
+.dsc-instructions,
+.dsc-month-description-full {
+    display: flex;
+    align-items: center;
+    gap: var(--dsc-spacing-sm);
+    margin-bottom: var(--dsc-spacing-sm);
+}
+
+.dsc-instructions:last-child,
+.dsc-month-description-full:last-child {
+    margin-bottom: 0;
+}
+
+.dsc-month-description-full {
+    font-style: italic;
+    color: var(--dsc-text-muted);
+}
+
+/* ========================================
+   SIDEBAR BUTTONS
+   ======================================== */
+
+.dsc-sidebar-btn {
+    background: var(--dsc-bg-tertiary);
+    border: 1px solid var(--dsc-border-medium);
+    border-radius: var(--dsc-radius-sm);
+    padding: var(--dsc-spacing-sm) var(--dsc-spacing-md);
+    margin-left: var(--dsc-spacing-sm);
+    cursor: pointer;
+    font-size: var(--dsc-font-size-sm);
+    color: var(--dsc-text-primary);
+    font-family: inherit;
+    transition: all var(--dsc-transition-fast);
+}
+
+.dsc-sidebar-btn:hover {
+    background: var(--dsc-primary-light);
+    border-color: var(--dsc-border-dark);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .dsc-header {
+        flex-direction: column;
+        gap: var(--dsc-spacing-lg);
+    }
+    
+    .dsc-navigation {
+        flex-direction: row;
+        gap: var(--dsc-spacing-xl);
+    }
+    
+    .dsc-month-nav,
+    .dsc-year-nav {
+        flex-direction: column;
+        gap: var(--dsc-spacing-sm);
+    }
+    
+    .dsc-season-info {
+        padding: var(--dsc-spacing-sm);
+        margin-bottom: var(--dsc-spacing-md);
+    }
+    
+    .dsc-season-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--dsc-spacing-sm);
+    }
+    
+    .dsc-season-name {
+        font-size: var(--dsc-font-size-md);
+    }
+    
+    .dsc-season-description {
+        margin-left: 0;
+        align-self: flex-end;
+    }
+    
+    .dsc-day {
+        min-height: 30px;
+        padding: var(--dsc-spacing-xs);
+    }
+    
+    .dsc-day-number {
+        font-size: var(--dsc-font-size-sm);
+    }
+    
+    .dsc-calendar-content {
+        padding: var(--dsc-spacing-md);
+    }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.dsc-day:focus,
+.dsc-btn:focus,
+.dsc-year-display:focus {
+    outline: 2px solid var(--dsc-primary);
+    outline-offset: 2px;
+}
+
+.dsc-day[aria-selected="true"] {
+    background: var(--dsc-primary);
+    color: var(--dsc-text-inverse);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+    :root {
+        --dsc-border-light: #000;
+        --dsc-border-medium: #000;
+        --dsc-border-dark: #000;
+    }
+}
+
+/* ========================================
+   ECLIPSE STYLING
+   ======================================== */
+
+/* Eclipse Day Styling */
+.dsc-day-eclipse {
+    position: relative;
+    border-width: 2px !important;
+    box-shadow: var(--dsc-shadow-lg) !important;
+}
+
+.dsc-day-eclipse.dsc-eclipse-grand {
+    background: linear-gradient(135deg, var(--dsc-accent-sun) 0%, var(--dsc-primary-light) 100%) !important;
+    color: var(--dsc-text-primary) !important;
+    border-color: var(--dsc-accent-sun) !important;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.4), var(--dsc-shadow-xl) !important;
+    animation: dsc-grand-eclipse-pulse 3s ease-in-out infinite !important;
+}
+
+.dsc-day-eclipse.dsc-eclipse-total {
+    background: linear-gradient(135deg, var(--dsc-primary) 0%, var(--dsc-primary-dark) 100%) !important;
+    color: var(--dsc-text-inverse) !important;
+    border-color: var(--dsc-primary-dark) !important;
+    box-shadow: 0 0 0 2px rgba(200, 134, 13, 0.3), var(--dsc-shadow-lg) !important;
+}
+
+.dsc-day-eclipse.dsc-eclipse-partial {
+    background: linear-gradient(135deg, var(--dsc-primary-pale) 0%, var(--dsc-bg-hover) 100%) !important;
+    border-color: var(--dsc-border-accent) !important;
+    box-shadow: 0 0 0 1px rgba(200, 134, 13, 0.2), var(--dsc-shadow-md) !important;
+}
+
+/* Eclipse Indicators */
+.dsc-eclipse-indicator {
+    position: absolute !important;
+    top: var(--dsc-spacing-xs) !important;
+    left: var(--dsc-spacing-xs) !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    cursor: help !important;
+    font-size: var(--dsc-font-size-md) !important;
+    z-index: 10 !important;
+    transition: all var(--dsc-transition-fast) !important;
+}
+
+.dsc-eclipse-indicator:hover {
+    transform: scale(1.3) !important;
+}
+
+.dsc-eclipse-indicator.dsc-eclipse-grand {
+    color: var(--dsc-accent-sun) !important;
+    text-shadow: 0 0 4px currentColor !important;
+    filter: drop-shadow(0 0 3px currentColor) !important;
+    animation: dsc-grand-eclipse-star 2s ease-in-out infinite !important;
+}
+
+.dsc-eclipse-indicator.dsc-eclipse-total {
+    color: var(--dsc-primary-dark) !important;
+    text-shadow: 0 0 2px currentColor !important;
+}
+
+.dsc-eclipse-indicator.dsc-eclipse-partial {
+    color: var(--dsc-border-accent) !important;
+    opacity: 0.8 !important;
+}
+
+/* Eclipse Animations */
+@keyframes dsc-grand-eclipse-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.4), var(--dsc-shadow-xl);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.6), var(--dsc-shadow-xl);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes dsc-grand-eclipse-star {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+        filter: drop-shadow(0 0 3px currentColor);
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+        filter: drop-shadow(0 0 6px currentColor);
+    }
+}
+
+/* Enhanced Moon Container for Eclipse Days */
+.dsc-day-eclipse .dsc-moon-container {
+    top: var(--dsc-spacing-xl) !important; /* Move down to make room for eclipse indicator */
+}
+
+/* Make moon phases more prominent on eclipse days */
+.dsc-day-eclipse .dsc-moon {
+    font-size: 12px !important;
+    filter: drop-shadow(0 1px 3px rgba(44, 24, 16, 0.4)) !important;
+}
+
+.dsc-day-eclipse.dsc-eclipse-grand .dsc-moon {
+    animation: dsc-eclipse-moon-glow 2s ease-in-out infinite !important;
+}
+
+@keyframes dsc-eclipse-moon-glow {
+    0%, 100% {
+        filter: drop-shadow(0 1px 3px rgba(44, 24, 16, 0.4));
+    }
+    50% {
+        filter: drop-shadow(0 0 8px currentColor);
+        transform: scale(1.1);
+    }
+}
+
+/* Ensure eclipse styling takes precedence over note styling */
+
+/* Special styling for today + eclipse combination */
+.dsc-day-eclipse.dsc-day-today {
+    box-shadow: 0 0 0 4px var(--dsc-accent-fire), var(--dsc-shadow-xl) !important;
+}
+
+.dsc-day-eclipse.dsc-day-today.dsc-eclipse-grand {
+    box-shadow: 0 0 0 2px var(--dsc-accent-fire), 0 0 0 5px rgba(255, 215, 0, 0.6), var(--dsc-shadow-xl) !important;
+}
+
+/* Responsive eclipse styling */
+@media (max-width: 768px) {
+    .dsc-eclipse-indicator {
+        font-size: var(--dsc-font-size-sm) !important;
+    }
+    
+    .dsc-day-eclipse .dsc-moon {
+        font-size: 10px !important;
+    }
+    
+    .dsc-day-eclipse {
+        border-width: 1px !important;
+    }
+}
+
+/* Print styles for eclipses */
+@media print {
+    .dsc-day-eclipse {
+        border: 3px solid #000 !important;
+        background: #f0f0f0 !important;
+    }
+    
+    .dsc-eclipse-indicator {
+        display: block !important;
+        position: static !important;
+        font-size: 12px !important;
+    }
+    
+    .dsc-day-eclipse,
+    .dsc-eclipse-indicator,
+    .dsc-moon {
+        animation: none !important;
+    }
+} 

@@ -1,0 +1,306 @@
+{
+    "historicalEvents": [
+        {
+            "kingsAge": 1,
+            "year": 1,
+            "importance": "critical",
+            "title": "Creation of the King's Age Calendar",
+            "description": "Creation of the King's Age calendar by the nature-masters based on the rotation of Athas's two moons. Originally titled 'World's Age.' Original calendar uses 'Ocean' instead of 'Silt,' and 'Island' instead of 'Desert.'",
+            "freeYear": -14578
+        },
+        {
+            "kingsAge": 4,
+            "year": 4,
+            "importance": "major",
+            "title": "Discovery of Nature-Benders",
+            "description": "Discovery of the nature-benders, corrupt nature-masters who experiment with life in immoral ways.",
+            "freeYear": -14295
+        },
+        {
+            "kingsAge": 4,
+            "year": 19,
+            "importance": "major",
+            "title": "First Elemental Clerics",
+            "description": "First appearance of elemental clerics on Athas.",
+            "freeYear": -14274
+        },
+        {
+            "kingsAge": 4,
+            "year": 21,
+            "importance": "critical",
+            "title": "Evil Clerics Alliance",
+            "description": "Evil elemental clerics form an alliance with the nature-benders.",
+            "freeYear": -14272
+        },
+        {
+            "kingsAge": 7,
+            "year": 28,
+            "importance": "critical",
+            "title": "War Against Nature-Benders",
+            "description": "War between the nature-masters and the nature-benders until Ral's Vengeance of this age. In the end, the nature-benders are defeated along with their cleric allies.",
+            "freeYear": -14103
+        },
+        {
+            "kingsAge": 8,
+            "year": 3,
+            "importance": "critical",
+            "title": "Creation of the Brown Tide",
+            "description": "Nature-masters of Ty'agi attempt to expand the lifeforce of the ocean and accidentally create the Brown Tide-which brings about the end of the Blue Age.",
+            "freeYear": -14028
+        },
+        {
+            "kingsAge": 8,
+            "year": 4,
+            "importance": "critical",
+            "title": "The Rebirth Begins",
+            "description": "Surviving nature-masters create the Pristine Tower to destroy the Brown Tide. This action changes the sun from blue to yellow, destroying the halfling civilization and bringing about The Rebirth.",
+            "freeYear": -14027
+        },
+        {
+            "kingsAge": 8,
+            "year": 28,
+            "importance": "critical",
+            "title": "New Races Appear",
+            "description": "The new races of The Rebirth - humans, gnomes, dwarves, elves, and others - appear across the face of Athas. Great cities such as Tyr, Bodach, and Guistenal are founded to house the new races. Last use of 'Island' and 'Ocean' on the World's Age Calendar. Beginning of the Green Age.",
+            "freeYear": -14026
+        },
+        {
+            "kingsAge": 8,
+            "year": 36,
+            "importance": "major",
+            "title": "First Psionic Powers",
+            "description": "First use of psionic powers by the races of The Rebirth.",
+            "freeYear": -14018
+        },
+        {
+            "kingsAge": 8,
+            "year": 88,
+            "importance": "minor",
+            "title": "High Lord Rhan Thes-onel Disappears",
+            "description": "Ruler of the rhul-thraun, High Lord Rhan Thes-onel, leaves the Jagged Cliffs to locate any rhulisti remaining on Athas. He never returns.",
+            "freeYear": -13966
+        },
+        {
+            "kingsAge": 9,
+            "year": 1,
+            "importance": "critical",
+            "title": "Calendar Name Change",
+            "description": "'World's Age' changed to 'King's Age' by the rulers of various cities. Dates remain the same.",
+            "freeYear": -13962
+        },
+        {
+            "kingsAge": 9,
+            "year": 45,
+            "importance": "major",
+            "title": "First Messenger Sighting",
+            "description": "First reported sighting of the Messenger by a Tyrian astronomer. The comet appears every 45 years until the 190th King's Age/Enemy's Slumber when the cycle is mysteriously broken.",
+            "freeYear": -13918
+        },
+        {
+            "kingsAge": 11,
+            "year": 12,
+            "importance": "critical",
+            "title": "Birth of Rajaat the War-Bringer",
+            "description": "Birth of Rajaat the War-Bringer.",
+            "freeYear": -13766
+        },
+        {
+            "kingsAge": 55,
+            "year": 26,
+            "importance": "major",
+            "title": "Thri-Kreen Migration",
+            "description": "The thri-kreen of Athas, a previously thought unintelligent race, migrate from the Crimson Savanna to the Tyr Region. Though short-lived and alien in appearance, the thri-kreen possess great wisdom and insight. The current king of Tyr welcomes them with open arms.",
+            "freeYear": -10387
+        },
+        {
+            "kingsAge": 66,
+            "year": 3,
+            "importance": "critical",
+            "title": "Time Traveler's Warning",
+            "description": "Mareet, ruler of Saragar, is visited by a time-traveler from the future. He tells the king an appending doom to Athas before disappearing. Obsessed with the warning, Mareet orders his most powerful psionicists to breach the time stream and determine the nature of the warning.",
+            "freeYear": -9569
+        },
+        {
+            "kingsAge": 66,
+            "year": 23,
+            "importance": "critical",
+            "title": "Saragar's Isolation",
+            "description": "The psionicists breach the time barrier and learn of the impending Cleansing Wars, Rajaat, and defiling magic. Mareet wants to warn all of Athas, but the psionicists disagree and take control of their leader. The three use their formidable powers to shield Saragar from the rest of the world.",
+            "freeYear": -9549
+        },
+        {
+            "kingsAge": 78,
+            "year": 19,
+            "importance": "major",
+            "title": "Thri-Kreen Persecution",
+            "description": "Current ruler of Urik persecutes the kreen and orders the death of all their kind in the city. Many thri-kreen across the land leave the cities to live in the wild. Migration of thri-kreen from the west comes to a halt.",
+            "freeYear": -8604
+        },
+        {
+            "kingsAge": 81,
+            "year": 28,
+            "importance": "critical",
+            "title": "Rajaat's Experiments Begin",
+            "description": "Rajaat arrives at the base of the Jagged Cliffs where he conduits experiments with the powers of life for the next 200 years.",
+            "freeYear": -8377
+        },
+        {
+            "kingsAge": 84,
+            "year": 15,
+            "importance": "critical",
+            "title": "Rajaat Discovers Magic",
+            "description": "After nearly two centuries of experiments Rajaat discovers the basics of magic, but is nearly killed in the process. After recovering he leaves the Jagged Cliffs and travels to the Pristine Tower to refine the magic process, creating defiling and preserving magic. The Time of Magic begins.",
+            "freeYear": -8169
+        },
+        {
+            "kingsAge": 87,
+            "year": 19,
+            "importance": "major",
+            "title": "Disaster at Celik",
+            "description": "An unknown disaster befalls the city of Celik, which casts it into ruins. Survivors blame the ordeal on the reckless use of psionics.",
+            "freeYear": -7890
+        },
+        {
+            "kingsAge": 123,
+            "year": 3,
+            "importance": "major",
+            "title": "Discovery of the Last Tree",
+            "description": "The feral halfling scout Too'lane discovers the Last Tree atop a mountain in the Forest Ridge. This ancient living artifact's location is kept secret by the halflings.",
+            "freeYear": -5114
+        },
+        {
+            "kingsAge": 125,
+            "year": 26,
+            "importance": "critical",
+            "title": "Rajaat Emerges from Pristine Tower",
+            "description": "After three eons of study, Rajaat emerges from the Pristine Tower to teach magic to the Rebirth races. He teaches preserving magic openly, and defiling magic in secret to those of 'questionable character.'",
+            "freeYear": -4976
+        },
+        {
+            "kingsAge": 164,
+            "year": 19,
+            "importance": "critical",
+            "title": "Rajaat Discovers Magic",
+            "description": "After nearly two centuries of experiments, Rajaat discovers the basics of magic and creates Defiling and Preserving Magic.",
+            "freeYear": -8169
+        },
+        {
+            "kingsAge": 167,
+            "year": 12,
+            "importance": "major",
+            "title": "Birth of Rajaat the War-Bringer",
+            "description": "The First Sorcerer is born in the Jagged Cliffs, destined to bring about the Cleansing Wars.",
+            "freeYear": -13766
+        },
+        {
+            "kingsAge": 177,
+            "year": 45,
+            "importance": "critical",
+            "title": "Beginning of the Cleansing Wars",
+            "description": "Rajaat assigns each of his Champions a race to exterminate. The unbridled use of defiling magic begins to devastate the land.",
+            "freeYear": -4976
+        },
+        {
+            "kingsAge": 188,
+            "year": 45,
+            "importance": "critical",
+            "title": "Champions' Rebellion",
+            "description": "The Champions, led by Borys of Ebe, rebel against Rajaat and imprison him in the Black using the Dark Lens.",
+            "freeYear": -4976
+        },
+        {
+            "kingsAge": 189,
+            "year": 32,
+            "importance": "major",
+            "title": "Death of Dregoth",
+            "description": "Led by Abalach-Re of Raam, the sorcerer-kings storm Guistenal and kill Dregoth just before he becomes a 30th-level Dragon.",
+            "freeYear": -4976
+        },
+        {
+            "kingsAge": 189,
+            "year": 77,
+            "importance": "major",
+            "title": "Borys Emerges from Insanity",
+            "description": "The Dragon emerges from his century of madness and begins demanding yearly levies to maintain Rajaat's prison.",
+            "freeYear": -4976
+        },
+        {
+            "kingsAge": 190,
+            "year": 26,
+            "importance": "critical",
+            "title": "Death of Kalak, Liberation of Tyr",
+            "description": "King Kalak of Tyr is slain by the Heartwood Spear through the combined efforts of Rikus, Agis, Neeva, Tithian, and Sadira. Tithian becomes the next king of Tyr and frees all slaves. Tyr adopts the Free Year calendar.",
+            "freeYear": 1
+        },
+        {
+            "kingsAge": 190,
+            "year": 27,
+            "importance": "major",
+            "title": "Hamanu's Army Attacks Tyr",
+            "description": "Hamanu of Urik send his army to capture the iron mines of Tyr from the upstart king. In response Rikus forms the Crimson Legion and defeats the approaching army while wielding the Scourge of Rkard and the Belt of Kings.",
+            "freeYear": 2
+        },
+        {
+            "kingsAge": 190,
+            "year": 28,
+            "importance": "critical",
+            "title": "Dragon's Agitation - Sadira Becomes Sun Wizard",
+            "description": "In an effort to protect Tyr from the Dragon, Sadira seeks out the Pristine Tower and its ancient magic. In return for her pledge to slay the Borys of Ebe the shadow giants of the Pristine Tower transform her into the Sun Wizard, giving her power akin to that of a sorcerer-king.",
+            "freeYear": 3
+        },
+        {
+            "kingsAge": 190,
+            "year": 29,
+            "importance": "major",
+            "title": "Quest for the Dark Lens Begins",
+            "description": "The ancient artifact the Psionatrix is activated by the Order, a powerful organization of psionic purists, nullifying psionics across the Tablelands and causing thri-kreen to be driven into an insane frenzy.",
+            "freeYear": 4
+        },
+        {
+            "kingsAge": 190,
+            "year": 30,
+            "importance": "critical",
+            "title": "Rajaat's Return",
+            "description": "Tithian uses the Dark Lens to free Rajaat's substance from the Black Sphere, causing his essence to also be released from the Hollow. After 2,000 years of imprisonment the First Sorcerer is once again free. The result of escaping his prison destroys much of Ur Draxa in a grand explosion.",
+            "freeYear": 10
+        },
+        {
+            "kingsAge": 190,
+            "year": 31,
+            "importance": "critical",
+            "title": "Battle in Ur Draxa",
+            "description": "In the ruins of Ur Draxa Rajaat battles his former Champions. Rajaat imprisons Andropinis of Balic in the Black, then grabs the Dark Lens from Tectuktitlay of Draj and crushes the sorcerer-king's skull. The remaining Champions scatter while Sadira steals the Dark Lens and heads for the Ring of Fire.",
+            "freeYear": 10
+        },
+        {
+            "kingsAge": 190,
+            "year": 32,
+            "importance": "major",
+            "title": "Discovery of the Rhul-Thaun",
+            "description": "The Wanderer discovers the lost halflings, the rhul-thaun, of the Jagged Cliff.",
+            "freeYear": 11
+        },
+        {
+            "kingsAge": 190,
+            "year": 33,
+            "importance": "major",
+            "title": "Discovery of the Last Sea",
+            "description": "After leaving the Jagged Cliffs, the Wanderer travels north and learns of the Last Sea. There he discovers the bizarre land of the Mind Lords.",
+            "freeYear": 12
+        },
+        {
+            "kingsAge": 190,
+            "year": 34,
+            "importance": "critical",
+            "title": "The Coruscation Begins",
+            "description": "The Coruscation begins, the Day of Light prophesied by the dray when the blood of a thousand unbelievers runs in rivers at the feet of Dregoth. This sign is to bring about the coming of a new age where Dregoth is supreme.",
+            "freeYear": 12
+        }
+    ],
+    "metadata": {
+        "source": "https://athas.org/events/",
+        "description": "Historical events from the official Dark Sun timeline, adapted for the Dark Sun Calendar module",
+        "lastUpdated": "2024",
+        "freeYearCalculation": "Free Year = (KingsAge - 190) * 77 + (Year - 26) + 1"
+    }
+}
