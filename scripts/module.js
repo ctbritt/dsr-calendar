@@ -92,24 +92,24 @@ Hooks.once("init", async () => {
 
       // 2. Find year and day of year
       const daysPerYear = this.daysPerYear;
-      const year = Math.floor(totalDays / daysPerYear) + this.yearZero - 1;
+      const year = Math.floor(totalDays / daysPerYear);
       const dayOfYear = totalDays % daysPerYear;
 
-      // 3. Find month and day, handle intercalary months
+      // 3. Find month and day
       let month = null;
       let day = null;
-      let intercalary = null;
-      let intercalaryDay = null;
+      let isIntercalary = false;
+      let monthName = null;
       const months = this.months;
       for (let i = 0; i < months.length; i++) {
         const m = months[i];
         const start = m.dayOffset;
-        const end = m.dayOffset + m.days - 1;
+        const end = m.dayOffset + m.days;
         if (dayOfYear >= start && dayOfYear <= end) {
-          month = i; // Keep 0-based month
-          day = dayOfYear - m.dayOffset + 1;
-          intercalary = m.intercalary ? m.name : null;
-          intercalaryDay = m.intercalary ? day : null;
+          month = i;
+          day = dayOfYear - m.dayOffset;
+          isIntercalary = m.intercalary || false;
+          monthName = m.name;
           break;
         }
       }
@@ -126,8 +126,8 @@ Hooks.once("init", async () => {
         hour,
         minute,
         second,
-        intercalary,
-        intercalaryDay,
+        isIntercalary,
+        monthName,
         moons,
       };
     }
@@ -148,7 +148,7 @@ Hooks.once("init", async () => {
         throw new Error(
           `Month ${month} not found in calendar data. Available months: ${this.months.length}`
         );
-      let dayOfYear = m.dayOffset + (day - 1);
+      let dayOfYear = m.dayOffset + day;
       const totalDays = y * daysPerYear + dayOfYear;
 
       // Calculate total seconds: (days * secondsPerDay) + (hours * secondsPerHour) + (minutes * secondsPerMinute) + seconds
@@ -163,35 +163,15 @@ Hooks.once("init", async () => {
     }
 
     getDayOfYear(components) {
-      let m;
-      if (components.intercalary) {
-        if (typeof components.intercalary === "string") {
-          m = this.months.find(
-            (m) => m.intercalary && m.name === components.intercalary
-          );
-        } else if (typeof components.intercalary === "number") {
-          const intercalaryMonths = this.months.filter((m) => m.intercalary);
-          m = intercalaryMonths[components.intercalary]; // intercalary is 0-based index
-        } else {
-          m = this.months.find((m) => m.intercalary);
-        }
-      } else {
-        // Month is 0-based, array is 0-based
-        m = this.months[components.month];
-      }
+      // Month is 0-based, array is 0-based
+      const m = this.months[components.month];
       if (!m)
         throw new Error(
           `Month ${components.month} not found in calendar data. Available months: ${this.months.length}`
         );
-      if (m.intercalary) {
-        return (
-          m.dayOffset +
-          (components.intercalaryDay ? components.intercalaryDay - 1 : 0) +
-          1
-        );
-      } else {
-        return m.dayOffset + components.day;
-      }
+
+      // Calculate day of year based on month offset and day within month
+      return m.dayOffset + components.day;
     }
 
     // Add utility functions as static methods on DarkSunCalendar
@@ -237,9 +217,10 @@ Hooks.once("init", async () => {
     static getYearName(year, calendarConfig) {
       const yearNames = calendarConfig.years.name.values;
       if (!Array.isArray(yearNames) || yearNames.length === 0) return null;
-      const idx = year % yearNames.length;
-      console.log("idx", idx);
-      return yearNames[idx] || null;
+      // Year 1 = Ral's Fury (index 0), Year 77 = Guthay's Agitation (index 76)
+      // For years > 77, we need to find the position within the 77-year cycle
+      const cyclePosition = year % yearNames.length;
+      return yearNames[cyclePosition] || null;
     }
 
     /**
@@ -248,11 +229,7 @@ Hooks.once("init", async () => {
      * @returns {number} The Kings Age (1-based)
      */
     static getKingsAge(year) {
-      // Handle the first 77 years (Kings Age 1)
-      if (year <= 77) {
-        return 1;
-      }
-      return Math.floor((year - 77) / 77) + 1;
+      return Math.floor(year / 77);
     }
 
     /**
@@ -261,12 +238,7 @@ Hooks.once("init", async () => {
      * @returns {number} The year of the Kings Age (1-based)
      */
     static getKingsAgeYear(year) {
-      // Handle the first 77 years (Kings Age 1)
-      if (year <= 77) {
-        return year;
-      }
-      const remainder = (year - 77) % 77;
-      return remainder === 0 ? 77 : remainder;
+      return (year % 77) + 1;
     }
 
     /**
@@ -294,42 +266,35 @@ Hooks.once("ready", async () => {
     minute,
     second
   ) {
-    const CalendarClass = CONFIG.time.worldCalendarClass;
-    const calendarConfig = CONFIG.time.worldCalendarConfig;
-    const dsrCalendar = new CalendarClass(calendarConfig, {});
-    const now = game.time.calendar.timeToComponents(game.time.worldTime);
-    console.log("now", now);
-    // Convert 1-based month to 0-based for internal use
-    const monthIndex = month;
-
+    // Create components object with the desired values
     const components = {
-      year: year,
-      month: monthIndex - 1,
+      year: year + 1,
+      month: month, // Convert 1-based month to 0-based
       day: day,
-      hour: hour !== undefined && hour !== null ? hour : now.hour,
-      minute: minute !== undefined && minute !== null ? minute : now.minute,
-      second: second !== undefined && second !== null ? second : now.second,
+      hour: hour !== undefined && hour !== null ? hour : 0,
+      minute: minute !== undefined && minute !== null ? minute : 0,
+      second: second !== undefined && second !== null ? second : 0,
     };
-    console.log("components", components);
-    dsrCalendar.year = year;
-    dsrCalendar.month = monthIndex;
-    dsrCalendar.day = day;
-    dsrCalendar.hour = hour;
-    dsrCalendar.minute = minute;
-    dsrCalendar.second = second;
-    const worldTime = game.time.calendar.componentsToTime(components);
-    await game.time.set(worldTime);
+
+    // Convert components to world time and set it
+    const newTime = game.time.calendar.componentsToTime(components);
+    await game.time.set(newTime);
+
+    // Get the actual components back from the calendar system
+    const actualComponents = game.time.calendar.timeToComponents(newTime);
+    console.log("Actual components after setting:", actualComponents);
+
     ui.notifications.info(
       game.i18n
         .localize("DSR-CALENDAR.CalendarSet")
-        .replace("{year}", year)
-        .replace("{month}", month) // Display 1-based month to user
-        .replace("{day}", day)
-        .replace("{hour}", hour)
-        .replace("{minute}", minute)
-        .replace("{second}", second)
+        .replace("{year}", actualComponents.year)
+        .replace("{month}", actualComponents.month + 1) // Convert back to 1-based for display
+        .replace("{day}", actualComponents.day)
+        .replace("{hour}", actualComponents.hour)
+        .replace("{minute}", actualComponents.minute)
+        .replace("{second}", actualComponents.second)
     );
-    return worldTime;
+    return newTime;
   };
 
   // Prompt the user for a calendar date/time, return the parsed components (does not set world time)
