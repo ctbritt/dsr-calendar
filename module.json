@@ -27,7 +27,9 @@
         "requires": []
     },
     "esmodules": [
-        "scripts/extend-calendar.js",
         "scripts/module.js"
+    ],
+    "styles": [
+        "styles/module.css"
     ]
 }
