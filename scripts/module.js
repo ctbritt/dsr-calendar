@@ -28,50 +28,7 @@ Hooks.once("init", async () => {
       this.daysPerYear = config.days.daysPerYear;
       this.seasons = config.seasons.values;
       this.yearsName = config.years.name?.values;
-      this.moons = config.moons || [];
-    }
-
-    /**
-     * Calculates moon phase for a given moon and date
-     * @param {Object} moon - Moon configuration object
-     * @param {number} year - Current year
-     * @param {number} dayOfYear - Day of year (0-based)
-     * @returns {Object} Moon phase information
-     */
-    calculateMoonPhase(moon, year, dayOfYear) {
-      // Use offset to determine the cycle day for day 1 of year 1
-      const offset = moon.offset || 0;
-
-      // Calculate total calendar day since day 1 of year 1
-      const totalCalendarDay = this.getTotalCalendarDay(year, dayOfYear);
-      // Calculate current cycle day using offset
-      const cycleDay = (offset + totalCalendarDay) % moon.cycleLength;
-      // Find current phase
-      let phaseIndex = 0;
-      let phaseDay = 0;
-      let cumulativeDays = 0;
-
-      for (let i = 0; i < moon.phases.length; i++) {
-        const phase = moon.phases[i];
-        // Handle decimal phase lengths by rounding for comparison
-        const phaseLength = Math.round(phase.length);
-        if (cycleDay < cumulativeDays + phaseLength) {
-          phaseIndex = i;
-          phaseDay = Math.floor(cycleDay - cumulativeDays) + 1;
-          break;
-        }
-        cumulativeDays += phaseLength;
-      }
-
-      return {
-        name: moon.name,
-        phase: moon.phases[phaseIndex],
-        phaseIndex,
-        phaseDay,
-        cycleDay: cycleDay + 1,
-        cycleLength: moon.cycleLength,
-        color: moon.color,
-      };
+      // Remove moons array - moon calculations now handled by sophisticated moon engine
     }
 
     /**
@@ -84,7 +41,7 @@ Hooks.once("init", async () => {
       // 1. Calculate total seconds
       const totalSeconds = Math.floor(worldTime / 1000);
       const second = totalSeconds % this.secondsPerMinute;
-      const totalMinutes = Math.floor(totalSeconds / this.secondsPerMinute);
+      const totalMinutes = Math.floor(totalSeconds / this.minutesPerHour);
       const minute = totalMinutes % this.minutesPerHour;
       const totalHours = Math.floor(totalMinutes / this.minutesPerHour);
       const hour = totalHours % this.hoursPerDay;
@@ -114,10 +71,8 @@ Hooks.once("init", async () => {
         }
       }
 
-      // 4. Calculate moon phases
-      const moons = this.moons.map((moon) =>
-        this.calculateMoonPhase(moon, year, dayOfYear)
-      );
+      // Moon calculations removed - now handled by sophisticated moon engine
+      // Use window.DSC.getCurrentMoonPhases() or similar for moon data
 
       return {
         year,
@@ -128,7 +83,7 @@ Hooks.once("init", async () => {
         second,
         isIntercalary,
         monthName,
-        moons,
+        // Remove moons array from return object
       };
     }
 
@@ -418,4 +373,107 @@ Hooks.once("ready", async () => {
       components.second
     );
   };
+
+  // Initialize the sophisticated moon system
+  try {
+    // Moon engine scripts are now loaded by FoundryVTT via module.json
+    if (window.AthasianMoonEngine && window.AthasianEclipseEngine) {
+      // Create moon system
+      const moonSystem = new window.AthasianMoonEngine.AthasianMoonSystem();
+      
+      // Set year 1, day 1 as the reference point for lunar cycles
+      // Year 1, day 1 = totalCalendarDay 376 (1 * 375 + 1)
+      // We want this to be the reference point where both moons are full
+      const year1Day1TotalCalendarDay = 1 * 375 + 1; // 376
+      
+      // Adjust the moon calculators to use year 1, day 1 as reference
+      moonSystem.ral.referenceDay = year1Day1TotalCalendarDay;
+      moonSystem.guthay.referenceDay = year1Day1TotalCalendarDay;
+      
+      const eclipseCalculator = new window.AthasianEclipseEngine.EclipseCalculator(moonSystem);
+      
+      // Create DSC interface
+      window.DSC = {
+        isReady: () => true,
+        getCurrentMoonPhases: () => {
+          try {
+            const currentTime = game.time.worldTime;
+            const components = game.time.calendar.timeToComponents(currentTime);
+            const dayOfYear = game.time.calendar.getDayOfYear(components);
+            const totalCalendarDay = game.time.calendar.getTotalCalendarDay(components.year, dayOfYear);
+            
+            // Use totalCalendarDay directly for moon calculations
+            const moonData = moonSystem.getBothMoons(totalCalendarDay);
+            
+            return [
+              {
+                moonName: moonData.ral.name,
+                phaseName: moonData.ral.phaseName,
+                illumination: moonData.ral.illumination,
+                moonColor: '#8de715', // Ral's green color
+                riseFormatted: moonData.ral.riseFormatted,
+                setFormatted: moonData.ral.setFormatted,
+                phase: moonData.ral.phase,
+                period: moonData.ral.period
+              },
+              {
+                moonName: moonData.guthay.name,
+                phaseName: moonData.guthay.phaseName,
+                illumination: moonData.guthay.illumination,
+                moonColor: '#ffd700', // Guthay's golden color
+                riseFormatted: moonData.guthay.riseFormatted,
+                setFormatted: moonData.guthay.setFormatted,
+                phase: moonData.guthay.phase,
+                period: moonData.guthay.period
+              }
+            ];
+          } catch (error) {
+            console.error('Error getting moon phases:', error);
+            return [];
+          }
+        },
+        getEclipseInfo: () => {
+          try {
+            const currentTime = game.time.worldTime;
+            const components = game.time.calendar.timeToComponents(currentTime);
+            const dayOfYear = game.time.calendar.getDayOfYear(components);
+            const totalCalendarDay = game.time.calendar.getTotalCalendarDay(components.year, dayOfYear);
+            
+            // Use totalCalendarDay directly for eclipse calculations
+            return eclipseCalculator.getEclipseInfo(totalCalendarDay);
+          } catch (error) {
+            console.error('Error getting eclipse info:', error);
+            return { type: 'none', description: 'Error getting eclipse info' };
+          }
+        }
+      };
+
+      // Also make available for calendar-grid.js
+      window.darkSunCalendar = {
+        moonSystem,
+        eclipseCalculator,
+        convertPhaseNameToIcon: (phaseName) => {
+          // Simple phase name to icon conversion
+          const phaseIcons = {
+            'New': 'new',
+            'Waxing Crescent': 'waxing-crescent',
+            'First Quarter': 'first-quarter',
+            'Waxing Gibbous': 'waxing-gibbous',
+            'Full': 'full',
+            'Waning Gibbous': 'waning-gibbous',
+            'Last Quarter': 'last-quarter',
+            'Waning Crescent': 'waning-crescent'
+          };
+          return phaseIcons[phaseName] || 'full';
+        }
+      };
+
+      console.log('🌞 DSC: Moon system initialized successfully');
+    } else {
+      console.error('🌞 DSC: Moon engine scripts not loaded properly');
+    }
+
+  } catch (error) {
+    console.error('🌞 DSC: Error initializing moon system:', error);
+  }
 });

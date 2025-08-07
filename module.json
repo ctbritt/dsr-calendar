@@ -27,6 +27,8 @@
         "requires": []
     },
     "esmodules": [
+        "scripts/moon-engine.js",
+        "scripts/eclipse-engine.js",
         "scripts/module.js"
     ],
     "styles": [
