@@ -1,0 +1,200 @@
+{{!-- Dark Sun Calendar Grid Widget Template --}}
+<div class="dsc-calendar-widget">
+    <div class="dsc-calendar-content">
+        {{#if error}}
+        <div class="dsc-error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>{{error}}</span>
+        </div>
+        {{else}}
+        {{!-- Calendar Header with Navigation --}}
+        <div class="dsc-header">
+            <div class="dsc-navigation">
+                <div class="dsc-month-nav">
+                    <button type="button" class="dsc-btn" data-action="previousMonth" title="Previous Month">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="dsc-month-info">
+                        <div class="dsc-month-name">{{monthName}}</div>
+
+
+                        {{#if monthDescription}}
+                        <div class="dsc-month-description" title="{{monthDescription}}">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        {{/if}}
+                    </div>
+                    <button type="button" class="dsc-btn" data-action="nextMonth" title="Next Month">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="dsc-year-nav">
+                    <button type="button" class="dsc-btn" data-action="previousYear" title="Previous Year">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button type="button" class="dsc-year-display clickable" data-action="setYear"
+                        title="Click to set year">{{yearDisplay}}</button>
+                    <button type="button" class="dsc-btn" data-action="nextYear" title="Next Year">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="dsc-header-actions">
+                <button type="button" class="dsc-btn dsc-btn-today" data-action="goToToday" title="Go to current date">
+                    <i class="fas fa-calendar-check"></i>
+                </button>
+            </div>
+        </div>
+
+        {{!-- Season Information --}}
+        {{#if seasonInfo}}
+        <div class="dsc-season-info">
+            <div class="dsc-season-header">
+                <i class="fas fa-sun"></i>
+                <span class="dsc-season-name">{{seasonInfo.name}}</span>
+                {{#if seasonInfo.description}}
+                <div class="dsc-season-description" title="{{seasonInfo.description}}">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
+
+        {{!-- Weekday Headers --}}
+        <div class="dsc-weekdays" style="--weekday-count: {{weekdays.length}};">
+            {{#each weekdays}}
+            <div class="dsc-weekday" title="{{description}}">
+                <span class="weekday-name">{{abbreviation}}</span>
+            </div>
+            {{/each}}
+        </div>
+
+        {{!-- Calendar Grid --}}
+        <div class="dsc-grid" style="--weekday-count: {{weekdays.length}};">
+            {{#each monthData.weeks as |week|}}
+            {{#if (and (lookup week 0) (lookup (lookup week 0) 'isIntercalary'))}}
+            <div class="dsc-intercalary-label-row">
+                <div class="dsc-intercalary-label" style="grid-column: span {{../weekdays.length}};" {{#if (lookup
+                    (lookup week 0) 'intercalaryDescription' )}}
+                    title="{{lookup (lookup week 0) 'intercalaryDescription'}}" {{/if}}>
+                    {{lookup (lookup week 0) 'intercalaryName'}}
+                    {{#if (lookup (lookup week 0) 'intercalaryDescription')}}
+                    <i class="fas fa-info-circle"></i>
+                    {{/if}}
+                </div>
+            </div>
+            <div class="dsc-intercalary-row">
+                {{#each week}}
+                <div class="dsc-day dsc-day-intercalary {{#if isToday}}dsc-day-today{{/if}} {{#if isSelected}}dsc-day-view{{/if}}"
+                    data-action="selectDate" data-day="{{intercalaryName}}" data-intercalary-day="{{intercalaryDay}}"
+                    data-date="{{date.year}}-{{date.month}}-{{intercalaryName}}-{{day}}"
+                    title="{{#if isToday}}Current Date: {{/if}}{{intercalaryName}} Day {{day}}{{#if intercalaryDescription}} - {{intercalaryDescription}}{{/if}} (Click to {{#if isGM}}set date{{else}}view details{{/if}})">
+                    <span class="dsc-day-number">{{day}}</span>
+                    {{#if canCreateNote}}
+                    <button type="button" class="dsc-quick-note" data-action="createNote" data-day="{{day}}"
+                        title="Create note for this date">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    {{/if}}
+                </div>
+                {{/each}}
+            </div>
+            {{else}}
+            <div class="dsc-week">
+                {{#each week}}
+                {{#if isEmpty}}
+                <div class="dsc-day dsc-day-empty"></div>
+                {{else}}
+                <div class="dsc-day {{#if isToday}}dsc-day-today{{/if}} {{#if isViewDate}}dsc-day-view{{/if}} {{#if hasNotes}}dsc-day-notes-{{primaryCategory}}{{/if}} {{#if hasMajorCelestialEvent}}dsc-day-eclipse dsc-eclipse-{{eclipseInfo.type}}{{/if}}"
+                    data-action="selectDate" data-day="{{day}}" data-date="{{date.year}}-{{date.month}}-{{date.day}}"
+                    data-category="{{primaryCategory}}"
+                    title="{{#if isToday}}Current Date: {{/if}}{{date.year}}-{{date.month}}-{{date.day}}{{#if hasNotes}} - {{noteCount}} note(s){{/if}}{{#if hasMajorCelestialEvent}} - {{eclipseInfo.description}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}} (Click to {{#if isGM}}set date{{else}}view details{{/if}})">
+                    <span class="dsc-day-number">{{day}}</span>
+
+                    {{#if hasMajorCelestialEvent}}
+                    <div class="dsc-eclipse-indicator dsc-eclipse-{{eclipseInfo.type}}"
+                        title="{{eclipseInfo.description}}">
+                        {{#if (eq eclipseInfo.type "grand")}}
+                        <i class="fas fa-star"></i>
+                        {{else if (eq eclipseInfo.type "total")}}
+                        <i class="fas fa-circle"></i>
+                        {{else if (eq eclipseInfo.type "partial")}}
+                        <i class="fas fa-circle-notch"></i>
+                        {{/if}}
+                    </div>
+                    {{/if}}
+
+                    {{#if moonPhases}}
+                    <div class="dsc-moon-container" title="{{moonTooltip}}">
+                        {{#each moonPhases}}
+                        <div class="dsc-moon" style="color: {{moonColor}}"
+                            title="{{moonName}}: {{phaseName}} ({{illumination}}%)">
+                            {{#if (eq phaseIcon "new")}}<i class="fas fa-circle dsc-moon-new"></i>{{/if}}
+                            {{#if (eq phaseIcon "waxing-crescent")}}<i
+                                class="fas fa-moon dsc-moon-waxing-crescent"></i>{{/if}}
+                            {{#if (eq phaseIcon "first-quarter")}}<i
+                                class="fas fa-adjust dsc-moon-first-quarter"></i>{{/if}}
+                            {{#if (eq phaseIcon "waxing-gibbous")}}<i
+                                class="fas fa-circle dsc-moon-waxing-gibbous"></i>{{/if}}
+                            {{#if (eq phaseIcon "full")}}<i class="fas fa-circle dsc-moon-full"></i>{{/if}}
+                            {{#if (eq phaseIcon "waning-gibbous")}}<i
+                                class="fas fa-circle dsc-moon-waning-gibbous"></i>{{/if}}
+                            {{#if (eq phaseIcon "last-quarter")}}<i
+                                class="fas fa-adjust dsc-moon-last-quarter"></i>{{/if}}
+                            {{#if (eq phaseIcon "waning-crescent")}}<i
+                                class="fas fa-moon dsc-moon-waning-crescent"></i>{{/if}}
+                        </div>
+                        {{/each}}
+                    </div>
+                    {{/if}}
+                    {{#if hasNotes}}
+                    <button type="button" class="dsc-note-indicator" data-action="viewNotes" data-day="{{day}}"
+                        title="{{noteCount}} note(s) - Click to view/edit">
+                        {{#if (gt noteCount 1)}}
+                        <span class="dsc-note-count dsc-note-count-{{primaryCategory}}">{{noteCount}}</span>
+                        {{else}}
+                        <i class="fas fa-sticky-note dsc-note-{{primaryCategory}}"></i>
+                        {{/if}}
+                    </button>
+                    {{/if}}
+                    {{#if canCreateNote}}
+                    <button type="button" class="dsc-quick-note" data-action="createNote" data-day="{{day}}"
+                        title="Create note for this date">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    {{/if}}
+                </div>
+                {{/if}}
+                {{/each}}
+            </div>
+            {{/if}}
+            {{/each}}
+        </div>
+
+        {{!-- Calendar Info Footer --}}
+        <div class="dsc-footer">
+            {{#if isGM}}
+            <div class="dsc-instructions">
+                <i class="fas fa-crown"></i>
+                <span>{{uiHint}}</span>
+            </div>
+            {{else}}
+            <div class="dsc-instructions">
+                <i class="fas fa-eye"></i>
+                <span>{{uiHint}}</span>
+            </div>
+            {{/if}}
+
+            {{#if monthDescription}}
+            <div class="dsc-month-description-full">
+                <i class="fas fa-info-circle"></i>
+                <span>{{monthDescription}}</span>
+            </div>
+            {{/if}}
+        </div>
+        {{/if}}
+    </div>
+</div>

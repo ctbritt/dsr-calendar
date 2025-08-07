@@ -38,8 +38,8 @@ if (typeof CONFIG.time.worldCalendarClass.getSeason === "function") {
 }
 
 // get moon data - need to convert components to worldTime first, then get moon data
-const worldTime = game.time.calendar.componentsToTime(components) * 1000;
-const currentComponents = game.time.calendar.timeToComponents(worldTime);
+const moonTime = game.time.calendar.componentsToTime(components);
+const currentComponents = game.time.calendar.timeToComponents(moonTime);
 const moon = currentComponents.moons;
 
 // Display moon information

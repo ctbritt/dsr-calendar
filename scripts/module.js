@@ -269,7 +269,7 @@ Hooks.once("ready", async () => {
     // Create components object with the desired values
     const components = {
       year: year + 1,
-      month: month, // Convert 1-based month to 0-based
+      month: month - 1, // Convert 1-based month (1-15) to 0-based (0-14)
       day: day,
       hour: hour !== undefined && hour !== null ? hour : 0,
       minute: minute !== undefined && minute !== null ? minute : 0,
