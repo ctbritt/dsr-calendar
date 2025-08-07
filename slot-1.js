@@ -32,27 +32,38 @@ if (typeof CONFIG.time.worldCalendarClass.getSeason === "function") {
     ) ?? "";
 }
 
-// get moon data directly from the components
-const moonDayOfYear = game.time.calendar.getDayOfYear(components);
-const moon = game.time.calendar.moons.map((moon) =>
-  game.time.calendar.calculateMoonPhase(moon, components.year, moonDayOfYear)
-);
-
-// Display moon information
+// Get moon data using the sophisticated moon engine
 let moonInfo = "";
-if (moon && moon.length > 0) {
-  moonInfo = "<br><b>Moons:</b><br>";
-  moon.forEach((moonData, index) => {
-    const phaseName = moonData.phase.name;
-    const phaseDay = moonData.phaseDay;
-    const cycleDay = moonData.cycleDay;
-    const cycleLength = moonData.cycleLength;
-    const moonColor = moonData.color || "#ffffff";
+try {
+  // Check if the sophisticated moon system is available
+  if (window.DSC && typeof window.DSC.getCurrentMoonPhases === 'function') {
+    const moonPhases = window.DSC.getCurrentMoonPhases();
+    
+    if (moonPhases && moonPhases.length > 0) {
+      moonInfo = "<br><b>Moons:</b><br>";
+      moonPhases.forEach((moonData) => {
+        const phaseName = moonData.phaseName;
+        const illumination = moonData.illumination;
+        const moonColor = moonData.moonColor || "#ffffff";
+        const riseTime = moonData.riseFormatted || '';
+        const setTime = moonData.setFormatted || '';
 
-    moonInfo += `<span style="color: ${moonColor}">●</span> <b>${moonData.name}</b>: ${phaseName} (Day ${phaseDay} of phase, Day ${cycleDay}/${cycleLength} of cycle)<br>`;
-  });
-} else {
-  moonInfo = "<br><i>No moon data available</i><br>";
+        moonInfo += `<span style="color: ${moonColor}">●</span> <b>${moonData.moonName}</b>: ${phaseName} (${illumination}%)`;
+        if (riseTime && setTime) {
+          moonInfo += ` - Rise: ${riseTime}, Set: ${setTime}`;
+        }
+        moonInfo += '<br>';
+      });
+    } else {
+      moonInfo = "<br><i>No moon data available</i><br>";
+    }
+  } else {
+    // Fallback to basic moon info if sophisticated system not available
+    moonInfo = "<br><i>Moon system not available</i><br>";
+  }
+} catch (error) {
+  console.error("Error getting moon data:", error);
+  moonInfo = "<br><i>Error getting moon data</i><br>";
 }
 
 const kingsAge = CONFIG.time.worldCalendarClass.getKingsAge(components.year);
