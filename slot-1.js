@@ -1,31 +1,26 @@
-// Prompt user to input the date and time, then set and display the current in-world date and time using the custom calendar
-const components = await promptAndSetCalendarDate();
+// Get the current calendar components from the world time
+const components = game.time.calendar.timeToComponents(game.time.worldTime);
+console.warn("Slot 1 components", components, game.time.worldTime);
 if (!components) {
   ui.notifications.warn("Calendar date was not set.");
   return;
 }
 
-console.warn("Slot 2 components", components);
-// await setCalendarDate(
-//   components.year,
-//   components.month,
-//   components.day,
-//   components.hour,
-//   components.minute,
-//   components.second
-// );
+// Use the new intercalary structure from components
+const isIntercalary = components.isIntercalary || false;
+console.log("Is Intercalary", isIntercalary);
+const monthName = components.monthName;
 
-// is intercalary?
+console.log("Month Name", monthName);
 
-const months = game.time.calendar.months;
-let intercalary = months[components.month].intercalary; // Already 0-based
+// Get day name for regular months (not intercalary)
 const days = game.time.calendar.days;
-const monthName = game.i18n.localize(
-  months[components.month]?.name ?? `Month ${components.month + 1}`
-);
-const dayName = game.i18n.localize(
-  days[(components.day - 1) % days.length]?.name ?? `Day ${components.day}` // Convert 1-based day to 0-based array index
-);
+const dayName = isIntercalary
+  ? `Day ${components.day}`
+  : game.i18n.localize(
+      days[(components.day - 1) % days.length]?.name ?? `Day ${components.day}`
+    );
+console.log("Day Name", dayName);
 
 // Optionally, get season for both calendars
 let season = "";
@@ -37,10 +32,11 @@ if (typeof CONFIG.time.worldCalendarClass.getSeason === "function") {
     ) ?? "";
 }
 
-// get moon data - need to convert components to worldTime first, then get moon data
-const worldTime = game.time.calendar.componentsToTime(components) * 1000;
-const currentComponents = game.time.calendar.timeToComponents(worldTime);
-const moon = currentComponents.moons;
+// get moon data directly from the components
+const moonDayOfYear = game.time.calendar.getDayOfYear(components);
+const moon = game.time.calendar.moons.map((moon) =>
+  game.time.calendar.calculateMoonPhase(moon, components.year, moonDayOfYear)
+);
 
 // Display moon information
 let moonInfo = "";
@@ -99,7 +95,7 @@ if (use24Hour) {
     .padStart(2, "0")} ${ampm}`;
 }
 
-const dateLine = intercalary
+const dateLine = isIntercalary
   ? `<b>${monthName} ${components.day}</b>`
   : `<b>${dayName}, ${monthName} ${components.day}</b>`;
 
