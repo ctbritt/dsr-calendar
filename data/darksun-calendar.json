@@ -277,11 +277,7 @@
             "name": "Ral",
             "cycleLength": 33,
             "offset": 0,
-            "firstNewMoon": {
-                "year": 0,
-                "month": 12,
-                "day": 14
-            },
+            "firstNewMoonDay": 17,
             "phases": [
                 {
                     "name": "New Moon",
@@ -343,11 +339,7 @@
             "name": "Guthay",
             "cycleLength": 125,
             "offset": 0,
-            "firstNewMoon": {
-                "year": 0,
-                "month": 3,
-                "day": 3
-            },
+            "firstNewMoonDay": 63,
             "phases": [
                 {
                     "name": "New Moon",

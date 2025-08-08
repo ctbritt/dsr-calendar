@@ -2,7 +2,9 @@
  * Athasian Moon Engine - Precise Lunar Calculations
  * ================================================
  * Astronomically accurate moon phase calculations for Ral and Guthay
- * Reference Point: Both moons full at Absolute Day 0 (KA1, Y1, D1)
+ * Reference Point: First new moon for each moon
+ * Ral: Year 1, Day 17 (first new moon)
+ * Guthay: Year 1, Day 63 (first new moon)
  * Eclipse occurs when both moons are full and aligned
  */
 
@@ -15,83 +17,102 @@ class MoonPhaseCalculator {
      * Create a moon phase calculator
      * @param {string} name - Moon name ("Ral" or "Guthay")
      * @param {number} period - Synodic period in days
-     * @param {number} referenceFullMoonDay - Absolute day when moon was last full (default 0)
+     * @param {number} firstNewMoonDay - Total calendar day of first new moon
+     * @param {Object} moonConfig - Moon configuration from JSON (optional)
      */
-    constructor(name, period, referenceFullMoonDay = 0) {
+    constructor(name, period, firstNewMoonDay, moonConfig = null) {
         this.name = name;
         this.period = period;
-        this.referenceDay = referenceFullMoonDay;
-        
+        this.firstNewMoonDay = firstNewMoonDay;
+        console.log(name, period, firstNewMoonDay, moonConfig);
+
+        // Read offset from moon configuration, default to 0
+        this.offset = moonConfig && moonConfig.offset !== undefined ? moonConfig.offset : 0;
+
         // Validate inputs
         if (period <= 0) throw new Error(`Invalid period for ${name}: ${period}`);
         if (!Number.isInteger(period)) throw new Error(`Period must be integer for ${name}: ${period}`);
+        if (this.offset < 0 || this.offset >= 1) throw new Error(`Offset must be between 0 and 1 for ${name}: ${this.offset}`);
     }
     
     /**
-     * Get the phase fraction for a given absolute day
-     * @param {number} absoluteDay - Absolute days since epoch
-     * @returns {number} Phase fraction (0.0 = Full, 0.5 = New, 1.0 = Full again)
+     * Get the day within the current cycle for a given total calendar day
+     * @param {number} totalCalendarDay - Total calendar days since year 1
+     * @returns {number} Day within the current cycle (0 to period-1)
      */
-    getPhase(absoluteDay) {
-        const daysSinceReference = absoluteDay - this.referenceDay;
-        const rawPhase = daysSinceReference / this.period;
+    getCycleDay(totalCalendarDay) {
+        const daysSinceFirstNewMoon = totalCalendarDay - this.firstNewMoonDay;
+        const cycleDay = daysSinceFirstNewMoon % this.period;
+        // Handle negative days (before first new moon)
+        return cycleDay < 0 ? cycleDay + this.period : cycleDay;
+    }
+    
+    /**
+     * Get the phase fraction for a given total calendar day
+     * @param {number} totalCalendarDay - Total calendar days since year 1
+     * @returns {number} Phase fraction (0.0 = New, 0.5 = Full, 1.0 = New again)
+     */
+    getPhase(totalCalendarDay) {
+        const cycleDay = this.getCycleDay(totalCalendarDay);
+        const basePhase = cycleDay / this.period;
         
-        // Normalize to 0-1 range, handling negative days
-        let normalizedPhase = rawPhase - Math.floor(rawPhase);
-        if (normalizedPhase < 0) normalizedPhase += 1;
+        // Apply offset and normalize to 0-1 range
+        let adjustedPhase = basePhase + this.offset;
+        if (adjustedPhase >= 1) adjustedPhase -= 1;
+        if (adjustedPhase < 0) adjustedPhase += 1;
         
-        return normalizedPhase;
+        return adjustedPhase;
     }
     
     /**
      * Get illumination percentage (0-100%)
-     * @param {number} absoluteDay - Absolute days since epoch
+     * @param {number} totalCalendarDay - Total calendar days since year 1
      * @returns {number} Illumination percentage
      */
-    getIllumination(absoluteDay) {
-        const phase = this.getPhase(absoluteDay);
+    getIllumination(totalCalendarDay) {
+        const phase = this.getPhase(totalCalendarDay);
         
-        // Cosine curve: Full Moon (phase 0) = 100%, New Moon (phase 0.5) = 0%
-        // Formula: 50 * (1 + cos(2π * phase))
-        const illumination = 50 * (1 + Math.cos(2 * Math.PI * phase));
+        // Cosine curve: New Moon (phase 0) = 0%, Full Moon (phase 0.5) = 100%
+        // Formula: 50 * (1 + cos(2π * (phase - 0.5)))
+        const illumination = 50 * (1 + Math.cos(2 * Math.PI * (phase - 0.5)));
         
         return Math.round(illumination);
     }
     
     /**
-     * Get descriptive phase name
-     * @param {number} absoluteDay - Absolute days since epoch
+     * Get descriptive phase name based on cycle day ranges
+     * @param {number} totalCalendarDay - Total calendar days since year 1
      * @returns {string} Phase name
      */
-    getPhaseName(absoluteDay) {
-        const phase = this.getPhase(absoluteDay);
-        const degrees = phase * 360;
+    getPhaseName(totalCalendarDay) {
+        const cycleDay = this.getCycleDay(totalCalendarDay);
+        const p = this.period;
         
-        // Convert phase to traditional moon phase names
-        if (degrees < 1 || degrees > 359) return "Full";
-        if (degrees < 90) return "Waning Gibbous";
-        if (degrees >= 89 && degrees <= 91) return "Last Quarter";
-        if (degrees < 180) return "Waning Crescent";
-        if (degrees >= 179 && degrees <= 181) return "New";
-        if (degrees < 270) return "Waxing Crescent";
-        if (degrees >= 269 && degrees <= 271) return "First Quarter";
-        return "Waxing Gibbous";
+        // Phase ranges based on 1/8th divisions of the cycle
+        if (cycleDay >= 0 && cycleDay < p/8) return "New";
+        if (cycleDay >= p/8 && cycleDay < p/4) return "Waxing Crescent";
+        if (cycleDay >= p/4 && cycleDay < 3*p/8) return "First Quarter";
+        if (cycleDay >= 3*p/8 && cycleDay < p/2) return "Waxing Gibbous";
+        if (cycleDay >= p/2 && cycleDay < 5*p/8) return "Full";
+        if (cycleDay >= 5*p/8 && cycleDay < 3*p/4) return "Waning Gibbous";
+        if (cycleDay >= 3*p/4 && cycleDay < 7*p/8) return "Last Quarter";
+        return "Waning Crescent"; // 7*p/8 to p
     }
     
     /**
      * Get rise and set times based on phase
      * Assumption: Full moon rises at 18:00, sets at 06:00
      * Times shift linearly with phase
-     * @param {number} absoluteDay - Absolute days since epoch
+     * @param {number} totalCalendarDay - Total calendar days since year 1
      * @returns {object} {rise: number, set: number} Hours in 24-hour format
      */
-    getRiseSetTimes(absoluteDay) {
-        const phase = this.getPhase(absoluteDay);
+    getRiseSetTimes(totalCalendarDay) {
+        const phase = this.getPhase(totalCalendarDay);
         
-        // Linear shift: Full moon (phase 0) rises at 18:00
-        // New moon (phase 0.5) rises at 06:00
-        const riseHour = (18 + 24 * phase) % 24;
-        const setHour = (6 + 24 * phase) % 24;
+        // Linear shift: Full moon (phase 0.5) rises at 18:00
+        // New moon (phase 0) rises at 06:00
+        const riseHour = (6 + 24 * phase) % 24;
+        const setHour = (18 + 24 * phase) % 24;
         
         return {
             rise: Math.round(riseHour * 100) / 100, // Round to 2 decimal places
@@ -112,19 +133,19 @@ class MoonPhaseCalculator {
     
     /**
      * Get complete moon data for a given day
-     * @param {number} absoluteDay - Absolute days since epoch
+     * @param {number} totalCalendarDay - Total calendar days since year 1
      * @returns {object} Complete moon data
      */
-    getMoonData(absoluteDay) {
-        const phase = this.getPhase(absoluteDay);
-        const illumination = this.getIllumination(absoluteDay);
-        const phaseName = this.getPhaseName(absoluteDay);
-        const times = this.getRiseSetTimes(absoluteDay);
+    getMoonData(totalCalendarDay) {
+        const phase = this.getPhase(totalCalendarDay);
+        const illumination = this.getIllumination(totalCalendarDay);
+        const phaseName = this.getPhaseName(totalCalendarDay);
+        const times = this.getRiseSetTimes(totalCalendarDay);
         
         return {
             name: this.name,
             period: this.period,
-            absoluteDay,
+            absoluteDay: totalCalendarDay, // Keep absoluteDay for compatibility
             phase,
             illumination,
             phaseName,
@@ -137,65 +158,67 @@ class MoonPhaseCalculator {
     
     /**
      * Check if moon is full (within tolerance)
-     * @param {number} absoluteDay - Absolute days since epoch
+     * @param {number} totalCalendarDay - Total calendar days since year 1
      * @param {number} tolerance - Phase tolerance (default 0.02 = ~0.7 days for 33-day cycle)
      * @returns {boolean} True if moon is full
      */
-    isFull(absoluteDay, tolerance = 0.02) {
-        const phase = this.getPhase(absoluteDay);
+    isFull(totalCalendarDay, tolerance = 0.02) {
+        const phase = this.getPhase(totalCalendarDay);
         return phase < tolerance || phase > (1 - tolerance);
     }
     
     /**
      * Check if moon is new (within tolerance)
-     * @param {number} absoluteDay - Absolute days since epoch
+     * @param {number} totalCalendarDay - Total calendar days since year 1
      * @param {number} tolerance - Phase tolerance (default 0.02)
      * @returns {boolean} True if moon is new
      */
-    isNew(absoluteDay, tolerance = 0.02) {
-        const phase = this.getPhase(absoluteDay);
-        return Math.abs(phase - 0.5) < tolerance;
+    isNew(totalCalendarDay, tolerance = 0.02) {
+        const phase = this.getPhase(totalCalendarDay);
+        return Math.abs(phase - 0.0) < tolerance || Math.abs(phase - 1.0) < tolerance;
     }
     
     /**
      * Find next full moon from given day
-     * @param {number} fromAbsoluteDay - Starting absolute day
-     * @returns {number} Absolute day of next full moon
+     * @param {number} fromTotalCalendarDay - Starting total calendar days since year 1
+     * @returns {number} Total calendar day of next full moon
      */
-    getNextFullMoon(fromAbsoluteDay) {
-        const currentPhase = this.getPhase(fromAbsoluteDay);
+    getNextFullMoon(fromTotalCalendarDay) {
+        const currentPhase = this.getPhase(fromTotalCalendarDay);
         let daysToNextFull;
         
-        if (currentPhase === 0) {
+        if (Math.abs(currentPhase - 0.5) < 0.01) {
             // Already full, next full moon is one complete cycle away
             daysToNextFull = this.period;
+        } else if (currentPhase < 0.5) {
+            daysToNextFull = (0.5 - currentPhase) * this.period;
         } else {
-            // Calculate days until phase returns to 0
-            daysToNextFull = (1 - currentPhase) * this.period;
+            daysToNextFull = (1.5 - currentPhase) * this.period;
         }
         
-        return fromAbsoluteDay + Math.ceil(daysToNextFull);
+        return fromTotalCalendarDay + Math.ceil(daysToNextFull);
     }
     
     /**
      * Find next new moon from given day
-     * @param {number} fromAbsoluteDay - Starting absolute day
-     * @returns {number} Absolute day of next new moon
+     * @param {number} fromTotalCalendarDay - Starting total calendar days since year 1
+     * @returns {number} Total calendar day of next new moon
      */
-    getNextNewMoon(fromAbsoluteDay) {
-        const currentPhase = this.getPhase(fromAbsoluteDay);
+    getNextNewMoon(fromTotalCalendarDay) {
+        const currentPhase = this.getPhase(fromTotalCalendarDay);
         let daysToNextNew;
         
-        if (currentPhase === 0.5) {
+        if (Math.abs(currentPhase - 0.0) < 0.01 || Math.abs(currentPhase - 1.0) < 0.01) {
             // Already new, next new moon is one complete cycle away
             daysToNextNew = this.period;
         } else if (currentPhase < 0.5) {
-            daysToNextNew = (0.5 - currentPhase) * this.period;
+            daysToNextNew = (0.0 - currentPhase) * this.period;
+            if (daysToNextNew < 0) daysToNextNew += this.period;
         } else {
-            daysToNextNew = (1.5 - currentPhase) * this.period;
+            daysToNextNew = (1.0 - currentPhase) * this.period;
         }
         
-        return fromAbsoluteDay + Math.ceil(daysToNextNew);
+        return fromTotalCalendarDay + Math.ceil(daysToNextNew);
     }
 }
 
@@ -204,10 +227,20 @@ class MoonPhaseCalculator {
  * Manages both Ral and Guthay with their specific parameters
  */
 class AthasianMoonSystem {
-    constructor() {
-        // Create moon calculators with reference point at Absolute Day 0
-        this.ral = new MoonPhaseCalculator("Ral", 33, 0);
-        this.guthay = new MoonPhaseCalculator("Guthay", 125, 0);
+    constructor(moonConfigs = null) {
+        // Create moon calculators using data from JSON configuration
+        // Get moon configurations from the provided data
+        const ralConfig = moonConfigs ? moonConfigs.find(m => m.name === "Ral") : null;
+        const guthayConfig = moonConfigs ? moonConfigs.find(m => m.name === "Guthay") : null;
+        
+        // Calculate first new moon total calendar days from JSON data
+        const ralFirstNewMoonDay = ralConfig && ralConfig.firstNewMoon ? 
+            (ralConfig.firstNewMoon.year - 1) * 375 + ralConfig.firstNewMoon.day : 17;
+        const guthayFirstNewMoonDay = guthayConfig && guthayConfig.firstNewMoon ? 
+            (guthayConfig.firstNewMoon.year - 1) * 375 + guthayConfig.firstNewMoon.day : 63;
+        
+        this.ral = new MoonPhaseCalculator("Ral", 33, ralFirstNewMoonDay, ralConfig);
+        this.guthay = new MoonPhaseCalculator("Guthay", 125, guthayFirstNewMoonDay, guthayConfig);
         
         // Eclipse cycle (LCM of 33 and 125)
         this.eclipseCycle = this.calculateLCM(33, 125);
@@ -247,27 +280,27 @@ class AthasianMoonSystem {
     }
     
     /**
-     * Get both moon data for a given absolute day
-     * @param {number} absoluteDay - Absolute days since epoch
+     * Get both moon data for a given total calendar day
+     * @param {number} totalCalendarDay - Total calendar days since year 1
      * @returns {object} Both moon data
      */
-    getBothMoons(absoluteDay) {
+    getBothMoons(totalCalendarDay) {
         return {
-            ral: this.ral.getMoonData(absoluteDay),
-            guthay: this.guthay.getMoonData(absoluteDay),
-            absoluteDay
+            ral: this.ral.getMoonData(totalCalendarDay),
+            guthay: this.guthay.getMoonData(totalCalendarDay),
+            absoluteDay: totalCalendarDay
         };
     }
     
     /**
      * Check if an eclipse is occurring (both moons full and aligned)
-     * @param {number} absoluteDay - Absolute days since epoch
+     * @param {number} totalCalendarDay - Total calendar days since year 1
      * @param {number} tolerance - Phase tolerance for eclipse detection
      * @returns {boolean} True if eclipse is occurring
      */
-    isEclipse(absoluteDay, tolerance = 0.02) {
-        return this.ral.isFull(absoluteDay, tolerance) && 
-               this.guthay.isFull(absoluteDay, tolerance);
+    isEclipse(totalCalendarDay, tolerance = 0.02) {
+        return this.ral.isFull(totalCalendarDay, tolerance) && 
+               this.guthay.isFull(totalCalendarDay, tolerance);
     }
     
     // Eclipse calculation is now handled by the EclipseCalculator class
@@ -278,35 +311,35 @@ class AthasianMoonSystem {
      * @returns {boolean} True if validation passes
      */
     validateSystem() {
-        // Test reference point (Absolute Day 0)
-        const referenceData = this.getBothMoons(0);
+        // Test first new moon points
+        const ralFirstNewMoon = this.ral.firstNewMoonDay;
+        const guthayFirstNewMoon = this.guthay.firstNewMoonDay;
         
-        if (referenceData.ral.illumination !== 100) {
-            throw new Error(`Ral not full at reference: ${referenceData.ral.illumination}%`);
+        const ralNewMoonData = this.ral.getMoonData(ralFirstNewMoon);
+        const guthayNewMoonData = this.guthay.getMoonData(guthayFirstNewMoon);
+        
+        if (ralNewMoonData.illumination > 5) {
+            throw new Error(`Ral not new at first new moon: ${ralNewMoonData.illumination}%`);
         }
         
-        if (referenceData.guthay.illumination !== 100) {
-            throw new Error(`Guthay not full at reference: ${referenceData.guthay.illumination}%`);
-        }
-        
-        if (!this.isEclipse(0)) {
-            throw new Error("No eclipse at reference point");
+        if (guthayNewMoonData.illumination > 5) {
+            throw new Error(`Guthay not new at first new moon: ${guthayNewMoonData.illumination}%`);
         }
         
         // Test that the mathematical LCM represents a natural eclipse cycle
         // Both moons should return to their starting phases at the LCM interval
         const cycleData = this.getBothMoons(this.eclipseCycle);
-        if (Math.abs(cycleData.ral.illumination - 100) > 1 || Math.abs(cycleData.guthay.illumination - 100) > 1) {
+        if (Math.abs(cycleData.ral.illumination - 0) > 5 || Math.abs(cycleData.guthay.illumination - 0) > 5) {
             console.warn(`Eclipse cycle (${this.eclipseCycle}) may not align perfectly: Ral ${cycleData.ral.illumination}%, Guthay ${cycleData.guthay.illumination}%`);
         }
         
-        // Test rise/set times at reference
-        if (Math.abs(referenceData.ral.rise - 18) > 0.01) {
-            throw new Error(`Ral rise time incorrect at reference: ${referenceData.ral.rise}`);
+        // Test rise/set times at first new moon (should rise at 06:00)
+        if (Math.abs(ralNewMoonData.rise - 6) > 0.01) {
+            throw new Error(`Ral rise time incorrect at first new moon: ${ralNewMoonData.rise}`);
         }
         
-        if (Math.abs(referenceData.guthay.rise - 18) > 0.01) {
-            throw new Error(`Guthay rise time incorrect at reference: ${referenceData.guthay.rise}`);
+        if (Math.abs(guthayNewMoonData.rise - 6) > 0.01) {
+            throw new Error(`Guthay rise time incorrect at first new moon: ${guthayNewMoonData.rise}`);
         }
         
         return true;

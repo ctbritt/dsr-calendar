@@ -47,10 +47,10 @@ Hooks.once("init", async () => {
       const hour = totalHours % this.hoursPerDay;
       const totalDays = Math.floor(totalHours / this.hoursPerDay);
 
-      // 2. Find year and day of year
+      // 2. Find year (1-based) and day-of-year (0-based)
       const daysPerYear = this.daysPerYear;
-      const year = Math.floor(totalDays / daysPerYear);
-      const dayOfYear = totalDays % daysPerYear;
+      const year = Math.floor(totalDays / daysPerYear) + 1; // 1-based year
+      const dayOfYear0 = totalDays % daysPerYear; // 0-based DOY
 
       // 3. Find month and day
       let month = null;
@@ -60,12 +60,13 @@ Hooks.once("init", async () => {
       const months = this.months;
       for (let i = 0; i < months.length; i++) {
         const m = months[i];
-        const start = m.dayOffset;
-        const end = m.dayOffset + m.days;
-        if (dayOfYear >= start && dayOfYear <= end) {
+        const start = m.dayOffset; // inclusive
+        const endExclusive = m.dayOffset + m.days; // exclusive
+        if (dayOfYear0 >= start && dayOfYear0 < endExclusive) {
           month = i;
-          day = dayOfYear - m.dayOffset;
-          isIntercalary = m.intercalary || false;
+          // Return 1-based day within month
+          day = (dayOfYear0 - m.dayOffset);
+          isIntercalary = !!(m.isIntercalary || m.intercalary);
           monthName = m.name;
           break;
         }
@@ -93,9 +94,9 @@ Hooks.once("init", async () => {
      */
     componentsToTime(components) {
       const { year, month, day, hour, minute, second } = components;
-      const yearZero = this.yearZero;
       const daysPerYear = this.daysPerYear;
-      let y = year - yearZero;
+      // 1-based year to 0-based year index for arithmetic
+      const y = year - 1;
 
       // Find the month in the months array (month is 0-based, array is 0-based)
       const m = this.months[month];
@@ -103,7 +104,8 @@ Hooks.once("init", async () => {
         throw new Error(
           `Month ${month} not found in calendar data. Available months: ${this.months.length}`
         );
-      let dayOfYear = m.dayOffset + day;
+      // components.day is 1-based
+      let dayOfYear = m.dayOffset + day; // 1..daysPerYear
       const totalDays = y * daysPerYear + dayOfYear;
 
       // Calculate total seconds: (days * secondsPerDay) + (hours * secondsPerHour) + (minutes * secondsPerMinute) + seconds
@@ -125,7 +127,7 @@ Hooks.once("init", async () => {
           `Month ${components.month} not found in calendar data. Available months: ${this.months.length}`
         );
 
-      // Calculate day of year based on month offset and day within month
+      // Calculate 1-based day-of-year based on month offset (0-based) and 1-based day
       return m.dayOffset + components.day;
     }
 
@@ -171,10 +173,12 @@ Hooks.once("init", async () => {
      */
     static getYearName(year, calendarConfig) {
       const yearNames = calendarConfig.years.name.values;
+      console.log(yearNames, yearNames.length);
       if (!Array.isArray(yearNames) || yearNames.length === 0) return null;
       // Year 1 = Ral's Fury (index 0), Year 77 = Guthay's Agitation (index 76)
       // For years > 77, we need to find the position within the 77-year cycle
-      const cyclePosition = year % yearNames.length;
+      const cyclePosition = (year % yearNames.length);
+      console.log(cyclePosition);
       return yearNames[cyclePosition] || null;
     }
 
@@ -184,7 +188,7 @@ Hooks.once("init", async () => {
      * @returns {number} The Kings Age (1-based)
      */
     static getKingsAge(year) {
-      return Math.floor(year / 77);
+      return Math.ceil(year / 77);
     }
 
     /**
@@ -193,7 +197,8 @@ Hooks.once("init", async () => {
      * @returns {number} The year of the Kings Age (1-based)
      */
     static getKingsAgeYear(year) {
-      return (year % 77) + 1;
+      const result = year % 77;
+      return result === 0 ? 1 : result;
     }
 
     /**
@@ -203,7 +208,8 @@ Hooks.once("init", async () => {
      * @returns {number} Total calendar day since year 1
      */
     getTotalCalendarDay(year, dayOfYear) {
-      return year * this.daysPerYear + dayOfYear;
+      // year is 1-based, dayOfYear is 1-based
+      return (year - 1) * this.daysPerYear + dayOfYear;
     }
   }
   CONFIG.time.worldCalendarClass = DarkSunCalendar;
@@ -223,7 +229,7 @@ Hooks.once("ready", async () => {
   ) {
     // Create components object with the desired values
     const components = {
-      year: year + 1,
+      year: year, // year is already 1-based
       month: month - 1, // Convert 1-based month (1-15) to 0-based (0-14)
       day: day,
       hour: hour !== undefined && hour !== null ? hour : 0,
@@ -261,11 +267,6 @@ Hooks.once("ready", async () => {
     let current = await game.time.calendar.timeToComponents(
       game.time.worldTime
     );
-    // if (game.time && typeof game.time.worldTime === "number") {
-    //   try {
-    //     current = game.time.calendar.timeToComponents(game.time.worldTime);
-    //   } catch (e) {}
-    // }
     let monthOptions = months
       .map((m, i) =>
         m.intercalary
@@ -275,7 +276,7 @@ Hooks.once("ready", async () => {
       .join("\n");
     let yearInput = prompt(
       game.i18n.localize("DSR-CALENDAR.PromptYear"),
-      current.year + 1
+      current.year
     );
 
     // Check if user cancelled the prompt
@@ -283,7 +284,7 @@ Hooks.once("ready", async () => {
       return null;
     }
     let monthInput = prompt(
-      game.i18n.localize("DSR-CALENDAR.PromptMonth"),
+      game.i18n.localize("DSR-CALENDAR.PromptMonth") + "\n\n" + monthOptions,
       current.month + 1 // Display 1-based month to user
     );
 
@@ -292,7 +293,7 @@ Hooks.once("ready", async () => {
       return null;
     }
 
-    const monthIndex = parseInt(monthInput, 10);
+    const monthIndex = parseInt(monthInput, 10) - 1;
     if (isNaN(monthIndex) || monthIndex < 0 || monthIndex >= months.length) {
       ui.notifications.error(game.i18n.localize("DSR-CALENDAR.InvalidMonth"));
       return null;
@@ -352,7 +353,7 @@ Hooks.once("ready", async () => {
     }
     return {
       year: parseInt(yearInput, 10),
-      month: monthIndex - 1, // Keep 0-based month
+      month: monthIndex, // monthIndex is already 0-based
       day,
       hour,
       minute,
@@ -378,17 +379,10 @@ Hooks.once("ready", async () => {
   try {
     // Moon engine scripts are now loaded by FoundryVTT via module.json
     if (window.AthasianMoonEngine && window.AthasianEclipseEngine) {
-      // Create moon system
-      const moonSystem = new window.AthasianMoonEngine.AthasianMoonSystem();
-      
-      // Set year 1, day 1 as the reference point for lunar cycles
-      // Year 1, day 1 = totalCalendarDay 376 (1 * 375 + 1)
-      // We want this to be the reference point where both moons are full
-      const year1Day1TotalCalendarDay = 1 * 375 + 1; // 376
-      
-      // Adjust the moon calculators to use year 1, day 1 as reference
-      moonSystem.ral.referenceDay = year1Day1TotalCalendarDay;
-      moonSystem.guthay.referenceDay = year1Day1TotalCalendarDay;
+      // Create moon system with first new moon reference points
+      // Ral: First new moon at totalCalendarDay 17
+      // Guthay: First new moon at totalCalendarDay 63
+      const moonSystem = new window.AthasianMoonEngine.AthasianMoonSystem(CONFIG.time.worldCalendarConfig.moons);
       
       const eclipseCalculator = new window.AthasianEclipseEngine.EclipseCalculator(moonSystem);
       
@@ -444,6 +438,41 @@ Hooks.once("ready", async () => {
           } catch (error) {
             console.error('Error getting eclipse info:', error);
             return { type: 'none', description: 'Error getting eclipse info' };
+          }
+        },
+        setDateFromTotalDays: async (totalDays, hour = 0, minute = 0, second = 0) => {
+          try {
+            // Convert total calendar days to year and day of year
+            const daysPerYear = 375;
+            const year = Math.floor(totalDays / daysPerYear) + 1;
+            const dayOfYear = totalDays % daysPerYear;
+            
+            if (dayOfYear === 0) {
+              // Handle case where totalDays is exactly divisible by daysPerYear
+              return await window.DSC.setDateFromTotalDays(totalDays - 1, hour, minute, second);
+            }
+            
+            // Find the month and day from day of year
+            const months = CONFIG.time.worldCalendarConfig.months.values;
+            let month = 0;
+            let day = dayOfYear;
+            
+            for (let i = 0; i < months.length; i++) {
+              const m = months[i];
+              const start = m.dayOffset;
+              const end = m.dayOffset + m.days;
+              if (dayOfYear >= start && dayOfYear <= end) {
+                month = i;
+                day = dayOfYear - m.dayOffset;
+                break;
+              }
+            }
+            
+            // Set the date using the existing setCalendarDate function
+            return await window.setCalendarDate(year, month + 1, day, hour, minute, second);
+          } catch (error) {
+            console.error('Error setting date from total days:', error);
+            throw error;
           }
         }
       };
