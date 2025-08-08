@@ -313,9 +313,21 @@ class EclipseCalculator {
      * @returns {Array} Eclipse events for the year
      */
     getYearlyEclipseCalendar(kingsAge, year) {
-        const startDay = window.AthasianCalendarCore.toAbsoluteDays(kingsAge, year, 1);
-        const endDay = startDay + 374; // 375 days in a year
-        
+        try {
+            if (window.DSC && typeof window.DSC.setKingsAgeDate === 'function') {
+                // Convert KA/year to absolute start day using DSC helpers
+                // Determine absolute day for KA-year, day 1 by constructing a date
+                const KAE = (window.CONFIG?.time?._dsrKAEpochOffset) || 0;
+                const effectiveYear = (kingsAge - 1) * 77 + year;
+                const absoluteYear = effectiveYear - KAE;
+                const startDay = (absoluteYear - 1) * 375 + 1;
+                const endDay = startDay + 374;
+                return this.findEclipsesInRange(startDay, endDay);
+            }
+        } catch (e) { /* fall through */ }
+        // Fallback: best-effort search for a 1-year window starting at day 1 of KA/year
+        const startDay = 1;
+        const endDay = startDay + 374;
         return this.findEclipsesInRange(startDay, endDay);
     }
     

@@ -13,6 +13,34 @@ Hooks.once("init", async () => {
   const resp = await fetch("modules/dsr-calendar/data/darksun-calendar.json");
   const calendarData = await resp.json();
 
+  // Anchor the 77-year cycle and Free Year mapping based on setting canon
+  // - Year 14656 is Free Year 2
+  // - It is King's Age 190, Year 27
+  // - Year Name: "Wind's Reverance"
+  const _CYCLE = 77;
+  const _safeMod = (n, m) => ((n % m) + m) % m;
+  (function _computeCycleOffsets() {
+    try {
+      const anchor = { year: 14656, kingsAge: 190, yearInAge: 27, yearName: "Wind's Reverance" };
+      // Compute King's Age epoch offset so KA/Year-in-Age match the anchor
+      const y = anchor.year;
+      const r = _safeMod((anchor.yearInAge - 1) - (y - 1), _CYCLE);
+      const base = Math.floor((y - 1 + r) / _CYCLE);
+      const t = anchor.kingsAge - 1 - base;
+      CONFIG.time = CONFIG.time || {};
+      CONFIG.time._dsrKAEpochOffset = r + _CYCLE * t; // typically -76
+      // Compute year name offset to match the anchor name
+      const names = calendarData?.years?.name?.values || [];
+      const targetIdx = names.findIndex((n) => n === anchor.yearName);
+      const nameOffset = targetIdx >= 0 ? _safeMod(targetIdx - (y - 1), _CYCLE) : 0;
+      CONFIG.time._dsrYearNameOffset = nameOffset;
+    } catch (e) {
+      // Fall back to zero offsets if anything goes wrong
+      CONFIG.time._dsrKAEpochOffset = 0;
+      CONFIG.time._dsrYearNameOffset = 0;
+    }
+  })();
+
   class DarkSunCalendar {
     constructor(config, options) {
       this.config = config;
@@ -41,7 +69,7 @@ Hooks.once("init", async () => {
       // 1. Calculate total seconds
       const totalSeconds = Math.floor(worldTime / 1000);
       const second = totalSeconds % this.secondsPerMinute;
-      const totalMinutes = Math.floor(totalSeconds / this.minutesPerHour);
+      const totalMinutes = Math.floor(totalSeconds / this.secondsPerMinute);
       const minute = totalMinutes % this.minutesPerHour;
       const totalHours = Math.floor(totalMinutes / this.minutesPerHour);
       const hour = totalHours % this.hoursPerDay;
@@ -65,7 +93,7 @@ Hooks.once("init", async () => {
         if (dayOfYear0 >= start && dayOfYear0 < endExclusive) {
           month = i;
           // Return 1-based day within month
-          day = (dayOfYear0 - m.dayOffset);
+          day = dayOfYear0 - m.dayOffset + 1;
           isIntercalary = !!(m.isIntercalary || m.intercalary);
           monthName = m.name;
           break;
@@ -104,13 +132,13 @@ Hooks.once("init", async () => {
         throw new Error(
           `Month ${month} not found in calendar data. Available months: ${this.months.length}`
         );
-      // components.day is 1-based
-      let dayOfYear = m.dayOffset + day; // 1..daysPerYear
-      const totalDays = y * daysPerYear + dayOfYear;
+      // components.day is 1-based -> convert to 0-based day count
+      const dayOfYear0 = m.dayOffset + (day - 1); // 0..daysPerYear-1
+      const totalDays0 = y * daysPerYear + dayOfYear0; // 0-based days since Year 1, Day 1
 
       // Calculate total seconds: (days * secondsPerDay) + (hours * secondsPerHour) + (minutes * secondsPerMinute) + seconds
       const totalSeconds =
-        totalDays * this.secondsPerDay +
+        totalDays0 * this.secondsPerDay +
         hour * this.minutesPerHour * this.secondsPerMinute +
         minute * this.secondsPerMinute +
         second;
@@ -173,13 +201,11 @@ Hooks.once("init", async () => {
      */
     static getYearName(year, calendarConfig) {
       const yearNames = calendarConfig.years.name.values;
-      console.log(yearNames, yearNames.length);
       if (!Array.isArray(yearNames) || yearNames.length === 0) return null;
-      // Year 1 = Ral's Fury (index 0), Year 77 = Guthay's Agitation (index 76)
-      // For years > 77, we need to find the position within the 77-year cycle
-      const cyclePosition = (year % yearNames.length);
-      console.log(cyclePosition);
-      return yearNames[cyclePosition] || null;
+      const CYCLE = yearNames.length;
+      const offset = CONFIG.time?._dsrYearNameOffset || 0;
+      const idx = ((year - 1 + offset) % CYCLE + CYCLE) % CYCLE;
+      return yearNames[idx] || null;
     }
 
     /**
@@ -188,7 +214,8 @@ Hooks.once("init", async () => {
      * @returns {number} The Kings Age (1-based)
      */
     static getKingsAge(year) {
-      return Math.ceil(year / 77);
+      const KAE = CONFIG.time?._dsrKAEpochOffset || 0;
+      return Math.floor(((year - 1 + KAE) / 77)) + 1;
     }
 
     /**
@@ -197,8 +224,10 @@ Hooks.once("init", async () => {
      * @returns {number} The year of the Kings Age (1-based)
      */
     static getKingsAgeYear(year) {
-      const result = year % 77;
-      return result === 0 ? 1 : result;
+      const KAE = CONFIG.time?._dsrKAEpochOffset || 0;
+      const cycle = 77;
+      const v = ((year - 1 + KAE) % cycle + cycle) % cycle; // 0..76
+      return v + 1;
     }
 
     /**
@@ -387,8 +416,50 @@ Hooks.once("ready", async () => {
       const eclipseCalculator = new window.AthasianEclipseEngine.EclipseCalculator(moonSystem);
       
       // Create DSC interface
+      const dsCfg = CONFIG.time.worldCalendarConfig;
       window.DSC = {
         isReady: () => true,
+        // Current date snapshot (1-based month)
+        getCurrentDate: () => {
+          const currentTime = game.time.worldTime;
+          const c = game.time.calendar.timeToComponents(currentTime);
+          return {
+            year: c.year,
+            month: (c.month ?? 0) + 1,
+            day: c.day,
+            time: { hour: c.hour, minute: c.minute, second: c.second },
+            calendar: dsCfg,
+            intercalary: c.isIntercalary ? dsCfg.months.values[c.month]?.name : null,
+          };
+        },
+        // Basic conversion helpers (absolute day is 1-based)
+        dateToAbsoluteDays: (date) => {
+          const months = dsCfg.months.values;
+          const m = months[(date.month ?? 1) - 1];
+          if (!m) throw new Error(`Invalid month ${date.month}`);
+          const dayOfYear = m.dayOffset + date.day; // 1..375
+          return (date.year - 1) * dsCfg.days.daysPerYear + dayOfYear;
+        },
+        fromAbsoluteDays: (absoluteDay) => {
+          const daysPerYear = dsCfg.days.daysPerYear;
+          const abs0 = absoluteDay - 1;
+          const year = Math.floor(abs0 / daysPerYear) + 1;
+          const dayOfYear = (abs0 % daysPerYear) + 1;
+          const months = dsCfg.months.values;
+          let monthIdx = 0;
+          let day = dayOfYear;
+          for (let i = 0; i < months.length; i++) {
+            const m = months[i];
+            const start = m.dayOffset + 1;
+            const end = m.dayOffset + m.days;
+            if (dayOfYear >= start && dayOfYear <= end) {
+              monthIdx = i;
+              day = dayOfYear - m.dayOffset;
+              break;
+            }
+          }
+          return { year, month: monthIdx + 1, day };
+        },
         getCurrentMoonPhases: () => {
           try {
             const currentTime = game.time.worldTime;
@@ -398,13 +469,16 @@ Hooks.once("ready", async () => {
             
             // Use totalCalendarDay directly for moon calculations
             const moonData = moonSystem.getBothMoons(totalCalendarDay);
-            
+            const moons = dsCfg.moons || [];
+            const ralCfg = moons.find(m => m.name === 'Ral');
+            const guthayCfg = moons.find(m => m.name === 'Guthay');
+
             return [
               {
                 moonName: moonData.ral.name,
                 phaseName: moonData.ral.phaseName,
                 illumination: moonData.ral.illumination,
-                moonColor: '#8de715', // Ral's green color
+                moonColor: ralCfg?.color || '#8de715',
                 riseFormatted: moonData.ral.riseFormatted,
                 setFormatted: moonData.ral.setFormatted,
                 phase: moonData.ral.phase,
@@ -414,7 +488,7 @@ Hooks.once("ready", async () => {
                 moonName: moonData.guthay.name,
                 phaseName: moonData.guthay.phaseName,
                 illumination: moonData.guthay.illumination,
-                moonColor: '#ffd700', // Guthay's golden color
+                moonColor: guthayCfg?.color || '#ffd700',
                 riseFormatted: moonData.guthay.riseFormatted,
                 setFormatted: moonData.guthay.setFormatted,
                 phase: moonData.guthay.phase,
@@ -439,6 +513,49 @@ Hooks.once("ready", async () => {
             console.error('Error getting eclipse info:', error);
             return { type: 'none', description: 'Error getting eclipse info' };
           }
+        },
+        findNextEclipse: () => {
+          try {
+            const currentTime = game.time.worldTime;
+            const components = game.time.calendar.timeToComponents(currentTime);
+            const dayOfYear = game.time.calendar.getDayOfYear(components);
+            const totalCalendarDay = game.time.calendar.getTotalCalendarDay(components.year, dayOfYear);
+            return eclipseCalculator.findNextEclipse(totalCalendarDay);
+          } catch (error) { return null; }
+        },
+        findPreviousEclipse: () => {
+          try {
+            const currentTime = game.time.worldTime;
+            const components = game.time.calendar.timeToComponents(currentTime);
+            const dayOfYear = game.time.calendar.getDayOfYear(components);
+            const totalCalendarDay = game.time.calendar.getTotalCalendarDay(components.year, dayOfYear);
+            return eclipseCalculator.findPreviousEclipse(totalCalendarDay);
+          } catch (error) { return null; }
+        },
+        getSeasonInfo: () => {
+          const comp = game.time.calendar.timeToComponents(game.time.worldTime);
+          const name = CONFIG.time.worldCalendarClass.getSeason(comp, dsCfg);
+          const descs = {
+            'High Sun': 'The most brutal season when the crimson sun reaches its peak.',
+            'Sun Descending': 'The sun begins its slow retreat; respite from the worst heat.',
+            'Sun Ascending': 'The sun grows stronger again; inhospitable conditions return.'
+          };
+          return name ? { name, description: descs[name] || '' } : null;
+        },
+        getKingsAge: (year) => CONFIG.time.worldCalendarClass.getKingsAge(year),
+        getKingsAgeYear: (year) => CONFIG.time.worldCalendarClass.getKingsAgeYear(year),
+        getYearName: (year) => CONFIG.time.worldCalendarClass.getYearName(year, dsCfg),
+        getFreeYear: (year) => year - 14654,
+        formatDarkSunDate: (dateObj) => {
+          const y = dateObj?.year ?? window.DSC.getCurrentDate().year;
+          const name = CONFIG.time.worldCalendarClass.getYearName(y, dsCfg) || '';
+          const ka = CONFIG.time.worldCalendarClass.getKingsAge(y);
+          const kay = CONFIG.time.worldCalendarClass.getKingsAgeYear(y);
+          return `King's Age ${ka}, Year ${kay} — Year of ${name}`;
+        },
+        formatDarkSunDateFromFreeYear: (freeYear) => {
+          const y = freeYear + 14654;
+          return window.DSC.formatDarkSunDate({ year: y });
         },
         setDateFromTotalDays: async (totalDays, hour = 0, minute = 0, second = 0) => {
           try {
@@ -474,7 +591,44 @@ Hooks.once("ready", async () => {
             console.error('Error setting date from total days:', error);
             throw error;
           }
-        }
+        },
+        // Advancement helpers (world time is in seconds internally)
+        advanceMinutes: async (n) => { await game.time.advance(n * 60); return true; },
+        advanceHours: async (n) => { await game.time.advance(n * 60 * 60); return true; },
+        advanceDays: async (n) => { await game.time.advance(n * 24 * 60 * 60); return true; },
+        advanceWeeks: async (n) => { await game.time.advance(n * 7 * 24 * 60 * 60); return true; },
+        advanceMonths: async (n) => {
+          const cur = game.time.calendar.timeToComponents(game.time.worldTime);
+          let m = (cur.month ?? 0) + 1 + n;
+          let y = cur.year;
+          const monthsLen = dsCfg.months.values.length;
+          while (m < 1) { m += monthsLen; y -= 1; }
+          while (m > monthsLen) { m -= monthsLen; y += 1; }
+          const targetMonth = dsCfg.months.values[m - 1];
+          const d = Math.min(cur.day, targetMonth.days);
+          await window.setCalendarDate(y, m, d, cur.hour, cur.minute, cur.second);
+          return true;
+        },
+        advanceYears: async (n) => {
+          const cur = game.time.calendar.timeToComponents(game.time.worldTime);
+          await window.setCalendarDate(cur.year + n, (cur.month ?? 0) + 1, cur.day, cur.hour, cur.minute, cur.second);
+          return true;
+        },
+        setKingsAgeDate: async (kingsAge, kingsAgeYear, month, day) => {
+          const KAE = CONFIG.time?._dsrKAEpochOffset || 0;
+          const effectiveYear = (kingsAge - 1) * 77 + kingsAgeYear;
+          const year = effectiveYear - KAE;
+          await window.setCalendarDate(year, month, day, 0, 0, 0);
+          return true;
+        },
+        setDayOfYear: (dayOfYear) => {
+          const cur = game.time.calendar.timeToComponents(game.time.worldTime);
+          const abs = (cur.year - 1) * dsCfg.days.daysPerYear + dayOfYear;
+          return window.DSC.setDateFromTotalDays(abs, cur.hour, cur.minute, cur.second);
+        },
+        showWidget: () => { /* wired when widget integrated */ },
+        hideWidget: () => { /* wired when widget integrated */ },
+        toggleWidget: () => { /* wired when widget integrated */ },
       };
 
       // Also make available for calendar-grid.js
@@ -497,7 +651,8 @@ Hooks.once("ready", async () => {
         }
       };
 
-      console.log('🌞 DSC: Moon system initialized successfully');
+      // Notify listeners that DSC is ready
+      Hooks.callAll('dark-sun-calendar:ready');
     } else {
       console.error('🌞 DSC: Moon engine scripts not loaded properly');
     }

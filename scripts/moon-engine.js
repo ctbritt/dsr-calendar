@@ -234,16 +234,19 @@ class AthasianMoonSystem {
         const guthayConfig = moonConfigs ? moonConfigs.find(m => m.name === "Guthay") : null;
         
         // Calculate first new moon total calendar days from JSON data
-        const ralFirstNewMoonDay = ralConfig && ralConfig.firstNewMoon ? 
-            (ralConfig.firstNewMoon.year - 1) * 375 + ralConfig.firstNewMoon.day : 17;
-        const guthayFirstNewMoonDay = guthayConfig && guthayConfig.firstNewMoon ? 
-            (guthayConfig.firstNewMoon.year - 1) * 375 + guthayConfig.firstNewMoon.day : 63;
+        const ralFirstNewMoonDay = ralConfig && (ralConfig.firstNewMoonDay || ralConfig.firstNewMoon) ? 
+            (ralConfig.firstNewMoonDay ?? ((ralConfig.firstNewMoon.year - 1) * 375 + ralConfig.firstNewMoon.day)) : 17;
+        const guthayFirstNewMoonDay = guthayConfig && (guthayConfig.firstNewMoonDay || guthayConfig.firstNewMoon) ? 
+            (guthayConfig.firstNewMoonDay ?? ((guthayConfig.firstNewMoon.year - 1) * 375 + guthayConfig.firstNewMoon.day)) : 63;
         
-        this.ral = new MoonPhaseCalculator("Ral", 33, ralFirstNewMoonDay, ralConfig);
-        this.guthay = new MoonPhaseCalculator("Guthay", 125, guthayFirstNewMoonDay, guthayConfig);
+        const ralPeriod = ralConfig?.cycleLength ?? 33;
+        const guthayPeriod = guthayConfig?.cycleLength ?? 125;
         
-        // Eclipse cycle (LCM of 33 and 125)
-        this.eclipseCycle = this.calculateLCM(33, 125);
+        this.ral = new MoonPhaseCalculator("Ral", ralPeriod, ralFirstNewMoonDay, ralConfig);
+        this.guthay = new MoonPhaseCalculator("Guthay", guthayPeriod, guthayFirstNewMoonDay, guthayConfig);
+        
+        // Eclipse cycle (LCM of both periods)
+        this.eclipseCycle = this.calculateLCM(ralPeriod, guthayPeriod);
     }
     
     /**
